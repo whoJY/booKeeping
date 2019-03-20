@@ -83,6 +83,10 @@ class HttpUtil{
     let setUserPwdSoapMsg3 = "</pwd>"+"</setUserPwd>"
     
     
+    //上传图片
+    let imgSoapMsg1 = "<uploadImg xmlns=\"http://tempuri.org/\">" + "<base64>"
+    let imgSoapMsg2 = "</base64>" + "</uploadImg>"
+    
     
     //测试服务url
     let url = "http://129.204.12.94:8080/helloservice/services/HelloService"
@@ -90,6 +94,8 @@ class HttpUtil{
     let smsUrl = "http://129.204.12.94:8080/bookeepingWebService/services/SMS"
     //ConsumptionService服务url
     let ConsumptionUrl = "http://129.204.12.94:8080/bookeepingWebService/services/ConsumptionService"
+    //上传img url
+    let imgUrl = "http://129.204.12.94:8080/bookeepingWebService/services/ImgUpload"
     
     
     func askWebService(_ whichService:String,_ para1:String,_ para2_optional:String)->String{
@@ -104,6 +110,10 @@ class HttpUtil{
         case "setUserPwd":
             let soapMsg = soapHead+setUserPwdSoapMsg1+para1+setUserPwdSoapMsg2+para2_optional+setUserPwdSoapMsg3+soapEnd
             return HttpPostViaWS(soapMsg, url: smsUrl)
+        case "uploadImg":
+            let soapMsg = soapHead+imgSoapMsg1+para1+imgSoapMsg2+soapEnd
+            return HttpPostViaWS(soapMsg, url: imgUrl)
+            
         default:
             break
         }
@@ -111,6 +121,10 @@ class HttpUtil{
     }
     
     
+    public   func  testHtpp(str:String){
+        let soapMsg = soapHead+imgSoapMsg1+str+imgSoapMsg2+soapEnd
+         HttpPostViaWS(soapMsg, url: imgUrl)
+    }
     
     
     static var doneHttp = false
@@ -135,9 +149,9 @@ class HttpUtil{
             }
             //将返回结果转为String
             let res = NSString(data:data! ,encoding: String.Encoding.utf8.rawValue)! as String
-            print("res is \(res)")
-            print("result from server is \(self.parseResult(xmlStr: res))")
-            HttpUtil.httpResult = self.parseResult(xmlStr: res)
+//            print("res is \(res)")
+//            print("result from server is \(self.parseResult(xmlStr: res))")
+//            HttpUtil.httpResult = self.parseResult(xmlStr: res)
             HttpUtil.doneHttp = true
         })
         task.resume()
@@ -147,7 +161,9 @@ class HttpUtil{
         while(!HttpUtil.doneHttp){
 //            print("...")
         }
+    print("网络操作完成.")
         HttpUtil.doneHttp = false //还原标志位
+    HttpUtil.httpResult = "11"
         return HttpUtil.httpResult
     }
     
