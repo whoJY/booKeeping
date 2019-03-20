@@ -23,6 +23,7 @@
 		402B777C222963F0002CEC99 /* toolMenuTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402B777B222963F0002CEC99 /* toolMenuTableViewCell.swift */; };
 		402B777E222A26FC002CEC99 /* exchangeRateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402B777D222A26FC002CEC99 /* exchangeRateViewController.swift */; };
 		402B7780222A64E6002CEC99 /* Finger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402B777F222A64E6002CEC99 /* Finger.swift */; };
+		4045CD7322421B4C00AC0A54 /* ImgUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4045CD7222421B4C00AC0A54 /* ImgUtil.swift */; };
 		4062D413222E57B900F52A1A /* alarmTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4062D412222E57B900F52A1A /* alarmTableViewCell.swift */; };
 		4062D483222FDC6B00F52A1A /* statisticsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4062D482222FDC6B00F52A1A /* statisticsTableViewCell.swift */; };
 		4083E8CC2238F452006024CF /* HttpUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4083E8CB2238F452006024CF /* HttpUtil.swift */; };
@@ -221,6 +222,7 @@
 		402B777B222963F0002CEC99 /* toolMenuTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = toolMenuTableViewCell.swift; sourceTree = "<group>"; };
 		402B777D222A26FC002CEC99 /* exchangeRateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = exchangeRateViewController.swift; sourceTree = "<group>"; };
 		402B777F222A64E6002CEC99 /* Finger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Finger.swift; sourceTree = "<group>"; };
+		4045CD7222421B4C00AC0A54 /* ImgUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImgUtil.swift; sourceTree = "<group>"; };
 		4062D412222E57B900F52A1A /* alarmTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = alarmTableViewCell.swift; sourceTree = "<group>"; };
 		4062D482222FDC6B00F52A1A /* statisticsTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = statisticsTableViewCell.swift; sourceTree = "<group>"; };
 		4083E8CA2238C4E4006024CF /* booKeeping.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = booKeeping.entitlements; sourceTree = "<group>"; };
@@ -313,6 +315,7 @@
 				402B77742229131B002CEC99 /* DateUtil.swift */,
 				4083E8CB2238F452006024CF /* HttpUtil.swift */,
 				4083E8CF223922F9006024CF /* JsonUtil.swift */,
+				4045CD7222421B4C00AC0A54 /* ImgUtil.swift */,
 			);
 			path = util;
 			sourceTree = "<group>";
@@ -709,6 +712,7 @@
 				40ACEA422233DE430083F49E /* shareDateTableViewCell.swift in Sources */,
 				40D3FECE2227B2080067FC51 /* statisticsViewController.swift in Sources */,
 				402B77512227E67A002CEC99 /* StringUtil.swift in Sources */,
+				4045CD7322421B4C00AC0A54 /* ImgUtil.swift in Sources */,
 				402B7778222953A4002CEC99 /* toolsViewController.swift in Sources */,
 				402B777E222A26FC002CEC99 /* exchangeRateViewController.swift in Sources */,
 				402B77752229131B002CEC99 /* DateUtil.swift in Sources */,
