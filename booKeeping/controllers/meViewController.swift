@@ -53,11 +53,7 @@ UINavigationControllerDelegate {
             cell.addSubview(lockSwitch)
             
         }
-        
-        //        print("finished7")
-        
         return cell
-        
     }
     
     @objc func switchDidChange(_ sender: UISwitch){
@@ -136,6 +132,7 @@ UINavigationControllerDelegate {
             let portraitPath = try self.context.fetch(request)[0].portraitPath
             print("path is \(portraitPath)")
             portrait.image = getSavedImage(named: portraitPath ?? "pickedimage.jpg")
+            testImage = portrait.image
             
         }catch{
             
@@ -215,6 +212,7 @@ UINavigationControllerDelegate {
         //获取选择的原图
         let pickedImage = info[UIImagePickerController.InfoKey.originalImage] as! UIImage
         portrait.image = pickedImage
+        
         //将选择的图片保存到Document目录下
         if ( saveImage(image: pickedImage, name: "portrait.jpg") ){
             
@@ -263,12 +261,26 @@ UINavigationControllerDelegate {
         self.present(self.imagePickerController!, animated: true, completion: nil)
     }
  
-    @IBAction func test(_ sender: UIButton) {
-        if let image = getSavedImage(named: "portrait.jpg") {
-            portrait.image = image
-        }
+    var testImage:UIImage? = nil
+    var temp : String? = nil
     
+    @IBAction func test(_ sender: UIButton) {
+        temp = ImgUtil().convertImageToBase64(image: testImage!)
         
+        
+    }
+    @IBOutlet weak var image2: UIImageView!
+    
+    @IBAction func test2(_ sender: UIButton) {
+     image2.image =  ImgUtil.convertBase64ToImage(imageString: temp!)
+
+    }
+    
+    
+    @IBAction func uploadImg(_ sender: UIButton) {
+        HttpUtil().askWebService("uploadImg", temp!, "")
+        
+//        HttpUtil().testHtpp(str: "hello")
     }
     
     
