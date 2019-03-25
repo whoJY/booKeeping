@@ -35,6 +35,43 @@ class StringUtil {
         return NSString(data:data! ,encoding: String.Encoding.utf8.rawValue)
     }
     
+    var activity = ["体检","感冒药","洗牙","买牛奶","买水果","吃烧烤","滴滴打车","机票","充话费","流量包","买衣服","买裤子","鞋","考研英语","考研政治","考研数学","考研专业课","购物","捐款给红十字会","猫粮","猫砂","狗粮"]
+    
+    func randomData()->(name:String,kind:String,price:Double){
+        let ran = 21.arc4random
+        let name  = activity[ran]
+        var kind = ""
+        if (ran<=2){
+            kind = "health"
+        }else if (ran <= 5){
+            kind = "eat"
+        }else if (ran <= 7){
+            kind = "traffic"
+        }else if (ran <= 9){
+            kind = "communication"
+        }else if (ran <= 12){
+         kind = "clothes"
+        }else if (ran <= 16){
+            kind = "study"
+        }else if (ran <= 18){
+            kind = "others"
+        }else {
+            kind = "pets"
+        }
+        let price = 370.arc4random + 30
+        
+        return (name,kind,Double(price))
+        
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
 }
 //String.randomStr(len: 30)

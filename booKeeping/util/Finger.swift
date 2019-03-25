@@ -22,26 +22,28 @@ class Finger {
         if context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: &error){
             context.evaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, localizedReason: tipsStr, reply: { (success, error) in
                 if success {
-                    
+                    //结果为true，完成为true。
                     res = true
                     Finger.result = true
                     Finger.finished = true
                     
                     print("TouchID/FaceID验证成功,error is \(String(describing: error)) ,res is \(res)")
-                } else {
+                } else {  //其他所有情况结果为false，完成为true。
                     switch Int32(error!._code) {
                     // 身份验证失败
                     case kLAErrorAuthenticationFailed:
                         print("LAErrorAuthenticationFailed")
                         
-                        // 用户取消
+                        //
                         Finger.result = false
                         Finger.finished = true
                         break;
                     case kLAErrorUserCancel :
                         
                         print("kLAErrorUserCancel")
-                        
+                        // 用户取消
+                        Finger.result = false
+                        Finger.finished = true
                         break
                         
                         //验证失败
@@ -50,6 +52,8 @@ class Finger {
                         
                         print("LAErrorUserFallback")
                         
+                        Finger.result = false
+                        Finger.finished = true
                         
                         break;
                         
@@ -69,6 +73,8 @@ class Finger {
                         
                         print("kLAErrorPasscodeNotSet")
                         
+                        Finger.result = false
+                        Finger.finished = true
                         break;
                         
                         // 设备本身并不具备指纹传感装置

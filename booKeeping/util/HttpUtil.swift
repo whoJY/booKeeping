@@ -84,9 +84,13 @@ class HttpUtil{
     
     
     //上传图片
-    let imgSoapMsg1 = "<uploadImg xmlns=\"http://tempuri.org/\">" + "<base64>"
-    let imgSoapMsg2 = "</base64>" + "</uploadImg>"
+    let imgSoapMsg1 = "<uploadImg xmlns=\"http://tempuri.org/\">" + "<user_id>"
+    let imgSoapMsg2 = "</user_id>" +  "<base64>"
+    let imgSoapMsg3 = "</base64>" + "</uploadImg>"
     
+    //上传json
+    let jsonSoapMsg1 = "<uploadConsumption xmlns=\"http://tempuri.org/\">" + "<jsonStr>"
+    let jsonSoapMsg2 = "</jsonStr>" + "</uploadConsumption>"
     
     //测试服务url
     let url = "http://129.204.12.94:8080/helloservice/services/HelloService"
@@ -96,24 +100,27 @@ class HttpUtil{
     let ConsumptionUrl = "http://129.204.12.94:8080/bookeepingWebService/services/ConsumptionService"
     //上传img url
     let imgUrl = "http://129.204.12.94:8080/bookeepingWebService/services/ImgUpload"
-    
+    //上传json数据url
+    let jsonUrl = "http://129.204.12.94:8080/bookeepingWebService/services/objectUpload"
     
     func askWebService(_ whichService:String,_ para1:String,_ para2_optional:String)->String{
         print("service is \(whichService)")
         switch whichService {
-        case "askValidate":
+        case "askValidate": //请求验证
             let soapMsg = soapHead+smsSoapMsg1+para1+smsSoapMsg2+soapEnd
             return HttpPostViaWS(soapMsg, url: smsUrl)
-        case "validataCode":
+        case "validataCode"://验证 验证码 是否正确
             let soapMsg = soapHead+valiSoapMsg1+para1+valiSoapMsg2+para2_optional+valiSoapMsg3+soapEnd
              return HttpPostViaWS(soapMsg, url: smsUrl)
-        case "setUserPwd":
+        case "setUserPwd"://设置密码
             let soapMsg = soapHead+setUserPwdSoapMsg1+para1+setUserPwdSoapMsg2+para2_optional+setUserPwdSoapMsg3+soapEnd
             return HttpPostViaWS(soapMsg, url: smsUrl)
-        case "uploadImg":
-            let soapMsg = soapHead+imgSoapMsg1+para1+imgSoapMsg2+soapEnd
+        case "uploadImg"://上传图片
+            let soapMsg = soapHead+imgSoapMsg1+para1+imgSoapMsg2+para2_optional+imgSoapMsg3+soapEnd
             return HttpPostViaWS(soapMsg, url: imgUrl)
-            
+        case "uploadConsumption"://上传json
+            let soapMsg = soapHead+jsonSoapMsg1+para1+jsonSoapMsg2+soapEnd
+            return HttpPostViaWS(soapMsg, url: jsonUrl)
         default:
             break
         }
@@ -140,18 +147,30 @@ class HttpUtil{
         request.addValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
         request.addValue(msgLength, forHTTPHeaderField:"Content-Length")
         request.addValue("say", forHTTPHeaderField: "SOAPAction")
+        request.timeoutInterval = 6
         let session = URLSession.shared
         //(3) 发送请求
         let task = session.dataTask(with: request as URLRequest, completionHandler: { (data, response, error) -> Void in
-//            print("data is \(String(describing: data!))\n,response is \(String(describing: response))\n,error is \(String(describing: error))\n")
             if let e = error {
                 print("ERROR:----------------\(e)")
             }
-            //将返回结果转为String
+            var errStr = error.debugDescription
+            if (errStr.contains("offline")){
+                HttpUtil.httpResult = "offLine"
+            }else if (errStr.contains("Could not connect to the server")){
+                HttpUtil.httpResult = "Could not connect to the server"
+            }else{
+                HttpUtil.httpResult = "other error"
+            }
+            print("data is \(String(describing: data))")
+            //如果有返回结果,将返回结果转为String
+            if (data != nil){
             let res = NSString(data:data! ,encoding: String.Encoding.utf8.rawValue)! as String
-//            print("res is \(res)")
-//            print("result from server is \(self.parseResult(xmlStr: res))")
-//            HttpUtil.httpResult = self.parseResult(xmlStr: res)
+                //            print("result from server is \(self.parseResult(xmlStr: res))")
+                            HttpUtil.httpResult = self.parseResult(xmlStr: res)
+            }
+
+            print("\n\n\(HttpUtil.httpResult)\n\n")
             HttpUtil.doneHttp = true
         })
         task.resume()

@@ -201,9 +201,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         EverydayDetailsViewController.getMoneyArr.append(getMoney)
         EverydayDetailsViewController.putMoneyArr.append(putMoney)
         
-        
-        
-        
+
         EverydayDetailsViewController.lastEverydayTotal = everyTotalCopy//记录最后一天的 view
         EverydayDetailsViewController.lastEachBaseView = eachBaseViewCopy//
         
@@ -229,26 +227,18 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
                 EverydayDetailsViewController.allDeleted = false
                 return 0
             }else{
+               
+                print("在返回行数方法这里，groupsCopy[pos] 是\(groupsCopy[pos])")
                 //首先判断是在添加操作还是删除操作
                 if (EverydayDetailsViewController.operateDelete){//如果是在进行删除操作
-                    if (EverydayDetailsViewController.neverAddNewDay){ //如果没有添加新的一天，按照原来groups数组个数返回
-                        
-                        EverydayDetailsViewController.operateDelete = false //重置标志位
-                        print("A返回了\(groups[pos].count-1)")
-                        return groups[pos].count-1
-                    }else{//否则返回groups pos后一个数据返回。因为新加的一天占在groups[0]这个位置
-                        EverydayDetailsViewController.operateDelete = false //重置标志位
-                        print("B返回了\(groups[pos+1].count-1)")
-                        return groups[pos+1].count - 1
-                    }
+                    
+                        print("B返回了\(groups[pos].count-1),groupsCopy[pos] is \(groupsCopy[pos])")
+                        return groupsCopy[pos].count - 1
                 }else{//如果不是在进行删除数据操作
                     print("C返回了\(groups[pos].count-1)")
                     return groups[pos].count - 1
                 }
-                
-                
-                
-                
+
             }
             
         }
@@ -269,7 +259,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
             cell.activityNameLabel.text = everydayDetail.name
             cell.activityPrice.text = String (everydayDetail.price)
             //        cell.imageView?.image = everydayDetail.photo
-            cell.imageView!.image =  UIImage(named: everydayDetail.photoName ?? "health.png")
+            cell.imageView!.image =  UIImage(named: String(everydayDetail.kind!+".png") )
             return cell
         }else{
             
@@ -379,42 +369,70 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     static var operateDelete = false
     static var hasDeletedOneTable = false //如果删除了一天，借此判断是删除了一条数据还是一天的table
     static var theFirstTime = true
-    
+    static var count = 0
     //左滑删除
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == .delete) {
+            EverydayDetailsViewController.operateDelete = true
+            print("\n\n\n")
             //首先判断视图会不会删完，也就是判断所删除的数据是不是这一天唯一一条数据
             var tag = tableView.tag
-            let pos = Int(groups[tag][indexPath.row+1])!
-            
-            
+            let tagOrigin = tag
             var  offset = 0
-            if (EverydayDetailsViewController.neverAddNewDay){//如果没有添加新的一天
-                offset = findMinusOffset(tag, EverydayDetailsViewController.deletedViewsTag)
-                if (!ifContains(EverydayDetailsViewController.deletedViewsTag, tag)){//如果不包含tag，则添加该tag。否则不添加
-                    EverydayDetailsViewController.deletedViewsTag.append(tag)
-                }
-                if (EverydayDetailsViewController.hasDeletedOneTable){  //如果之前删去了一天，则进行偏移，否则如果没有删去一天,而只是删去一天内的某条数据则不偏移
-                    tag -= offset
-                    EverydayDetailsViewController.hasDeletedOneTable = false //重置标志位
+            //            if (EverydayDetailsViewController.neverAddNewDay){//如果没有添加新的一天
+            offset = findMinusOffset(tagOrigin, EverydayDetailsViewController.deletedViewsTag)
+            
+             print("groupsCopy[tagOrigin] is \(groupsCopy[tagOrigin])")
+            //下面代码勿删👇
+            if (groupsCopy[tagOrigin].count == 2){ //如果该组数据只剩一条（不包括年份数据）,说明就要删完了，将tag记录下来
+                print("添加tag")
+                if (!ifContains(EverydayDetailsViewController.deletedViewsTag, tagOrigin)){//如果不包含tag，则添加该tag。否则不添加
+                    EverydayDetailsViewController.deletedViewsTag.append(tagOrigin)
+
+                    print("tag 是\(tag),添加tag后,EverydayDetailsViewController.deletedViewsTag is \(EverydayDetailsViewController.deletedViewsTag)")
                 }
             }
             
+            if (groupsCopy[tagOrigin].count > 2){//移除copy中的一个数据，甚至可以不用精确，只是为了返回函数中判定个数
+                print("移除了groupsCopy[tagOrigin][?]   ----  \(groupsCopy[tagOrigin][indexPath.row+1])")
+                groupsCopy[tagOrigin].remove(at: indexPath.row+1)
+                print("移除后groupsCopy[tagOrigin]   ----  \(groupsCopy[tagOrigin])")
+            }
             
-            if (groups[tag].count == 2){//如果只剩一条数据（还有一条年份数据）,删除数据，然后删除视图
+            if (EverydayDetailsViewController.hasDeletedOneTable){  //如果之前删去了一天，则进行偏移，否则如果没有删去一天,而只是删去一天内的某条数据则不偏移
+                print("offset is \(offset)")
+                tag -= (offset)
+            }
+            
+           
+            print("groups[tag] is \(groups[tag]),tag is \(tag)")
+            
+           let  pos =  Int(groups[tag][indexPath.row+1])!
+            
+            
+            if (groups[tag].count == 2){//如果只剩一条数据（还有一条存储年份的数据）,删除数据，然后删除视图
+                
+                EverydayDetailsViewController.everydayTotalArr[tagOrigin].backgroundColor = #colorLiteral(red: 0.9372549057, green: 0.3490196168, blue: 0.1921568662, alpha: 1)
+                
+                EverydayDetailsViewController.everydayTotalArr[tagOrigin].isHidden = true//隐藏本视图
+                
+                EverydayDetailsViewController.hasDeletedOneTable  = true //代表删除过一张卡片
                 //从context删除
                 deleteOneDetail(detail: EverydayDetailsViewController.everydayDetails[pos])
+                
+                print("即将删除的数据是:\( EverydayDetailsViewController.everydayDetails[pos]),pos is \(pos)")
                 //从数组中删除
                 EverydayDetailsViewController.everydayDetails.remove(at: pos)
+                
                 //刷新cell数据源
                 loadItems()
                 //刷新groups数组
                 groups = sortItemByDate(EverydayDetailsViewController.everydayDetails)
                 //在此视图之上的视图不动，之下的视图上移,此视图隐藏
-                EverydayDetailsViewController.everydayTotalArr[tag].isHidden = true//隐藏本视图
+//                EverydayDetailsViewController.everydayTotalArr[tag].isHidden = true//隐藏本视图
                 viewMoveDown(EverydayDetailsViewController.everydayTotalArr,-190,includeLastView: true, defaultStartIndex: tag+offset)//视图之下上移
                 
-                
+                print("后一组数据是\(groups[tag])")
                 
                 
             }else{//否则仅仅删除数据，保留视图
@@ -426,21 +444,24 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
                 loadItems()
                 //刷新groups数组
                 groups = sortItemByDate(EverydayDetailsViewController.everydayDetails)
+                print("在这里,groups[tag] is \(groups[tag]),tag is \(tag)")
                 //刷新cell显示
                 tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
+                //勿删👇
+                tag += (offset)
+                
                 //在此视图之上的视图不动，之下的视图上移1个cell的距离
                 viewMoveDown(EverydayDetailsViewController.everydayTotalArr,-40,includeLastView: true, defaultStartIndex: tag+1)//视图之下上移
                 //自身table view 及其父视图高度降低
-                tableView.frame.size.height -=  40
+                EverydayDetailsViewController.everydayTotalArr[tag].backgroundColor = #colorLiteral(red: 0.5843137503, green: 0.8235294223, blue: 0.4196078479, alpha: 1) //视觉提示
                 EverydayDetailsViewController.everydayTotalArr[tag].frame.size.height -= 40
-                EverydayDetailsViewController.eachdayBaseViewArr[tag].frame.size.height -=   40
+                EverydayDetailsViewController.eachdayBaseViewArr[tag].frame.size.height -= 40
+                EverydayDetailsViewController.tableViewArr[tag].frame.size.height -= 40
                 
             }
             //完成操作后groups情况
-            print("groups[tag] are \(groups[tag]),groups are \(groups)")
-            
-            
-
+//            print("最后groups[tag] are \(groups[tag])")
+            print("\n\n")
         }
     }
     
@@ -463,6 +484,198 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         } catch  {
             print("删除失败")
         }
+        
+    }
+    
+   
+    
+    
+    override func viewDidLoad() {
+        
+        
+        super.viewDidLoad()
+        //初始化视图
+        initUI()
+        //载入数据
+        loadData()
+        //打印路径
+        printPath()
+//                chooseKindandInputViewController().create999Details()
+//        chooseKindandInputViewController().createRealDate()
+        
+        
+        
+    }
+    
+    
+    static var added = false;//记录是否添加了新的一天
+    
+    
+    //从添加数据页面返回重新加载
+    @IBAction func back(segue: UIStoryboardSegue) {
+        EverydayDetailsViewController.operateDelete = false  //置删除标志位
+        if (EverydayDetailsViewController.added ){//如果添加了数据
+            
+            EverydayDetailsViewController.hasUpdatedGetAndPutLabel = false//置更新标志位
+            
+            let oldCount  = groups.count//旧的数据组 条数
+            //刷新数据源
+            loadItems()
+            groups = sortItemByDate(EverydayDetailsViewController.everydayDetails)
+          //更新groupsCopy
+            groupsCopy = groups
+            
+            let newCount  = groups.count //刷新数据源后，新的数据组 条数
+            
+            print("new groups.count is \(newCount)")
+            
+            if (newCount == oldCount){//如果新旧条数相等，说明还是同一天增加的
+                print("旧的一天")
+                addInTheSameDay()  //在已有天数上添加数据
+            }else{
+                addInNewDay()//在新的天数上添加数据
+                print("新的一天")
+            }
+            
+            
+            
+        }
+        
+        
+    }
+    
+    
+    static var neverAddNewDay = true //因有没有添加新的一天对操作有影响，故在此设立标志位
+    
+    //新的一天第一条数据
+    func  addInNewDay(){
+        
+        EverydayDetailsViewController.neverAddNewDay = false //置标志位为false
+        
+        //样例视图刷新数据
+        //        eachDayTableView.reloadData()
+        //        loadEveryday()
+        //其他所有视图下移
+        //        viewMoveDown(EverydayDetailsViewController.everydayTotalArr,300)
+        
+        print("groups 0 is \(groups[0]),groups[max] is \(groups[groups.count-1])")
+        
+        //添加一天后其他视图下移190
+        viewMoveDown(EverydayDetailsViewController.everydayTotalArr,190, includeLastView: true,defaultStartIndex: 0)
+        
+        //将所有view复制备份，勿删！（备份的数据给addinoldday用）
+        EverydayDetailsViewController.everydayTotalArrCopy = EverydayDetailsViewController.everydayTotalArr
+        
+        for i in 0...EverydayDetailsViewController.everydayTotalArrCopy.count-1{
+            EverydayDetailsViewController.tableViewArr[i].tag += 1
+        }
+
+        var newDay = UIView()
+        newDay = addOneDay(groups[0],0,false)
+
+        //重排数组，将新数据插到第一位
+        EverydayDetailsViewController.everydayTotalArr = viewMove1Pos(EverydayDetailsViewController.everydayTotalArr)
+        EverydayDetailsViewController.eachdayBaseViewArr =  viewMove1Pos(EverydayDetailsViewController.eachdayBaseViewArr)
+        EverydayDetailsViewController.tableViewArr =  viewMove1Pos(EverydayDetailsViewController.tableViewArr) as! [UITableView]
+        
+        EverydayDetailsViewController.getMoneyArr = viewMove1Pos(EverydayDetailsViewController.getMoneyArr) as! [UILabel]
+        EverydayDetailsViewController.putMoneyArr =  viewMove1Pos(EverydayDetailsViewController.putMoneyArr) as! [UILabel]
+        
+        //将视图添加到scroll view
+        scroll.addSubview(newDay)
+        EverydayDetailsViewController.loadPos = EverydayDetailsViewController.loadPos + 1
+        
+        //还原添加标志位
+        EverydayDetailsViewController.added  =  false
+        
+    }
+    
+    //视图移动指定距离
+    func viewMoveDown(_ viewArr:[UIView],_ offSet:Int,includeLastView:Bool,defaultStartIndex: Int){
+        
+        //        viewArr[0].backgroundColor = #colorLiteral(red: 0.7450980544, green: 0.1568627506, blue: 0.07450980693, alpha: 1)
+        //        viewArr[1].backgroundColor = #colorLiteral(red: 0.1019607857, green: 0.2784313858, blue: 0.400000006, alpha: 1)
+        //        viewArr[2].backgroundColor = #colorLiteral(red: 0.9529411793, green: 0.6862745285, blue: 0.1333333403, alpha: 1)
+        //        viewArr[3].backgroundColor = #colorLiteral(red: 0.2745098174, green: 0.4862745106, blue: 0.1411764771, alpha: 1)
+        if (defaultStartIndex <= viewArr.count-1){//防止越界
+            for i in defaultStartIndex...viewArr.count-1{//最后一个不移动（数组的最后一个有可能是第一个视图，看之前有没有添加新的一天
+                viewArr[i].frame.origin.y = viewArr[i].frame.origin.y + CGFloat(offSet)
+            }
+        }
+        
+//        if (includeLastView){//如果包括最后一位也要移动
+//            viewArr[viewArr.count-1].frame.origin.y +=  CGFloat(offSet)
+//        }else{
+//            viewArr[0].frame.origin.y -=  CGFloat(offSet)
+//        }
+    }
+    
+    
+    
+    //将view后移一位，将最后一位放在第一位
+    func viewMove1Pos(_ viewArr:[UIView])->[UIView]{
+        var res = viewArr
+        let temp = res[res.count - 1]
+        res.append(UIView())
+        for i in (0...res.count-2).reversed(){
+            res[i+1] = res[i]
+            
+        }
+        res[0] = temp
+        return res
+    }
+    
+    //在已有数据table view上添加新数据
+    func addInTheSameDay(){
+        
+        //刷新数据源
+        loadItems()
+        groups = sortItemByDate(EverydayDetailsViewController.everydayDetails)
+        //设置当天高度增加
+        EverydayDetailsViewController.eachdayBaseViewArr[0].frame.size.height +=  40
+        EverydayDetailsViewController.everydayTotalArr[0].frame.size.height += 40
+        
+        //样例视图刷新数据
+        //        eachDayTableView.reloadData()
+        //重载数据
+        EverydayDetailsViewController.lastTableView!.reloadData()
+        //刷新最近一个tableview的cell
+        for i in EverydayDetailsViewController.lastTableView!.indexPathsForVisibleRows!{
+            EverydayDetailsViewController.lastTableView!.reloadRows(at: [i], with: .none)
+            print("刷了\(EverydayDetailsViewController.lastTableView!.indexPathsForVisibleRows!.count)个")
+        }
+        
+        //添加的那一天高度增加
+        EverydayDetailsViewController.lastTableView!.frame.size.height += 40
+        //更新最新一行，勿删
+        EverydayDetailsViewController.lastTableView?.reloadRows(at: [EverydayDetailsViewController.lastIndexpath!], with: .none)
+        
+        if (EverydayDetailsViewController.neverAddNewDay){//如果从没有添加新的一天
+            //其他所有视图往下移
+            viewMoveDown(EverydayDetailsViewController.everydayTotalArr,44,includeLastView: true, defaultStartIndex: 1) //用旧的数组，最后一位不移动（）
+        }else{//如果添加了新的一天
+            //其他所有视图往下移
+            viewMoveDown(EverydayDetailsViewController.everydayTotalArrCopy,44,includeLastView: false, defaultStartIndex: 1) //用复制的数组,最后一位是新的一天，不移动
+        }
+        
+        //还原添加标志位
+        EverydayDetailsViewController.added  =  false
+        
+    }
+    
+  
+    //设置view风格
+    func setViewRoundAndShadow(view : UIView){
+        //为轮廓添加阴影和圆角
+        view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+        view.layer.shadowOffset = CGSize.init()//(0,0)时是四周都有阴影
+        view.layer.shadowColor = #colorLiteral(red: 0.4756349325, green: 0.4756467342, blue: 0.4756404161, alpha: 1);
+        view.layer.shadowOpacity = 0.8;
+        view.layer.shadowRadius = 5
+        view.layer.cornerRadius = 15
+        view.layer.masksToBounds = false
+        view.layer.borderColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+        view.layer.borderWidth = 0.25//设置边框线条粗细
         
     }
     
@@ -498,21 +711,6 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     }
     
     
-    override func viewDidLoad() {
-        
-        super.viewDidLoad()
-        //初始化视图
-        initUI()
-        //载入数据
-        loadData()
-        //打印路径
-        printPath()
-//                chooseKindandInputViewController().create999Details()
-        
-        
-        
-    }
-    
     // 停止计时
     func stopTimer() {
         if EverydayDetailsViewController.timer != nil {
@@ -521,10 +719,16 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         }
     }
     
+    var groupsCopy = [[String]]()
+    
     @objc func loadEveryday(){
         
         //数据分组
         groups = sortItemByDate(EverydayDetailsViewController.everydayDetails)
+        
+        //复制groups备用
+        groupsCopy = groups
+        
         print("groups 数量\(groups.count)")
         //根据分组的个数（即天数）生成同样数量的view
         //从上次加载完的pos开始加载
@@ -587,167 +791,6 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-    }
-    
-    static var added = false;//记录是否添加了新的一天
-    
-    
-    //从添加数据页面返回重新加载
-    @IBAction func back(segue: UIStoryboardSegue) {
-        
-        if (EverydayDetailsViewController.added ){//如果添加了数据
-            
-            EverydayDetailsViewController.hasUpdatedGetAndPutLabel = false//置更新标志位
-            
-            let oldCount  = groups.count//旧的数据组 条数
-            print("groups .count is \(oldCount)")
-            //刷新数据源
-            loadItems()
-            groups = sortItemByDate(EverydayDetailsViewController.everydayDetails)
-            
-            let newCount  = groups.count //刷新数据源后，新的数据组 条数
-            
-            print("new groups.count is \(newCount)")
-            
-            if (newCount == oldCount){//如果新旧条数相等，说明还是同一天增加的
-                print("旧的一天")
-                addInTheSameDay()  //在已有天数上添加数据
-            }else{
-                addInNewDay()//在新的天数上添加数据
-                print("新的一天")
-            }
-            
-            
-            
-        }
-        
-        
-    }
-    
-    
-    static var neverAddNewDay = true //因有没有添加新的一天对操作有影响，故在此设立标志位
-    
-    //新的一天第一条数据
-    func  addInNewDay(){
-        
-        EverydayDetailsViewController.neverAddNewDay = false //置标志位为false
-        
-        //样例视图刷新数据
-        //        eachDayTableView.reloadData()
-        //        loadEveryday()
-        //其他所有视图下移
-        //        viewMoveDown(EverydayDetailsViewController.everydayTotalArr,300)
-        
-        print("groups 0 is \(groups[0]),groups[max] is \(groups[groups.count-1])")
-        
-        var newDay = UIView()
-        newDay = addOneDay(groups[0],0,false)
-        
-        //将所有view复制备份，勿删！（备份的数据给addinoldday用）
-        EverydayDetailsViewController.everydayTotalArrCopy = EverydayDetailsViewController.everydayTotalArr
-        
-        //添加一天后其他视图下移190
-        viewMoveDown(EverydayDetailsViewController.everydayTotalArrCopy,190, includeLastView: false,defaultStartIndex: 1)
-        
-        //重排数组，将新数据插到第一位
-        EverydayDetailsViewController.everydayTotalArr = viewMove1Pos(EverydayDetailsViewController.everydayTotalArr)
-        EverydayDetailsViewController.eachdayBaseViewArr =  viewMove1Pos(EverydayDetailsViewController.eachdayBaseViewArr)
-        EverydayDetailsViewController.getMoneyArr = viewMove1Pos(EverydayDetailsViewController.getMoneyArr) as! [UILabel]
-        EverydayDetailsViewController.putMoneyArr =  viewMove1Pos(EverydayDetailsViewController.putMoneyArr) as! [UILabel]
-        
-        //将视图s添加到scroll view
-        scroll.addSubview(newDay)
-        EverydayDetailsViewController.loadPos = EverydayDetailsViewController.loadPos + 1
-        
-        //还原添加标志位
-        EverydayDetailsViewController.added  =  false
-        
-    }
-    
-    //将view后移一位
-    func viewMove1Pos(_ viewArr:[UIView])->[UIView]{
-        var res = viewArr
-        let temp = res[res.count - 1]
-        res.append(UIView())
-        for i in 0...res.count-2{
-            res[i+1] = res[i]
-            
-        }
-        res[0] = temp
-        return res
-    }
-    
-    //在已有数据table view上添加新数据
-    func addInTheSameDay(){
-        
-        //刷新数据源
-        loadItems()
-        groups = sortItemByDate(EverydayDetailsViewController.everydayDetails)
-        //设置当天高度增加
-        EverydayDetailsViewController.eachdayBaseViewArr[0].frame.size.height +=  40
-        EverydayDetailsViewController.everydayTotalArr[0].frame.size.height += 40
-        
-        //样例视图刷新数据
-        //        eachDayTableView.reloadData()
-        //重载数据
-        EverydayDetailsViewController.lastTableView!.reloadData()
-        //刷新最近一个tableview的cell
-        for i in EverydayDetailsViewController.lastTableView!.indexPathsForVisibleRows!{
-            EverydayDetailsViewController.lastTableView!.reloadRows(at: [i], with: .none)
-            print("刷了\(EverydayDetailsViewController.lastTableView!.indexPathsForVisibleRows!.count)个")
-        }
-        
-        //添加的那一天高度增加
-        EverydayDetailsViewController.lastTableView!.frame.size.height += 40
-        //更新最新一行，勿删
-        EverydayDetailsViewController.lastTableView?.reloadRows(at: [EverydayDetailsViewController.lastIndexpath!], with: .none)
-        
-        if (EverydayDetailsViewController.neverAddNewDay){//如果从没有添加新的一天
-            //其他所有视图往下移
-            viewMoveDown(EverydayDetailsViewController.everydayTotalArr,44,includeLastView: true, defaultStartIndex: 1) //用旧的数组，最后一位不移动（）
-        }else{//如果添加了新的一天
-            //其他所有视图往下移
-            viewMoveDown(EverydayDetailsViewController.everydayTotalArrCopy,44,includeLastView: false, defaultStartIndex: 1) //用复制的数组,最后一位是新的一天，不移动
-        }
-        
-        //还原添加标志位
-        EverydayDetailsViewController.added  =  false
-        
-    }
-    
-    //视图移动指定距离
-    func viewMoveDown(_ viewArr:[UIView],_ offSet:Int,includeLastView:Bool,defaultStartIndex: Int){
-        
-        //        viewArr[0].backgroundColor = #colorLiteral(red: 0.7450980544, green: 0.1568627506, blue: 0.07450980693, alpha: 1)
-        //        viewArr[1].backgroundColor = #colorLiteral(red: 0.1019607857, green: 0.2784313858, blue: 0.400000006, alpha: 1)
-        //        viewArr[2].backgroundColor = #colorLiteral(red: 0.9529411793, green: 0.6862745285, blue: 0.1333333403, alpha: 1)
-        //        viewArr[3].backgroundColor = #colorLiteral(red: 0.2745098174, green: 0.4862745106, blue: 0.1411764771, alpha: 1)
-        if (defaultStartIndex <= viewArr.count-2){//防止越界
-            for i in defaultStartIndex...viewArr.count-2{//最后一个不移动（数组的最后一个有可能是第一个视图，看之前有没有添加新的一天
-                viewArr[i].frame.origin.y = viewArr[i].frame.origin.y + CGFloat(offSet)
-            }
-            
-        }
-        if (includeLastView){//如果包括最后一位也要移动
-            viewArr[viewArr.count-1].frame.origin.y +=  CGFloat(offSet)
-        }else{
-            viewArr[0].frame.origin.y +=  CGFloat(offSet)
-        }
-    }
-    
-    //设置view风格
-    func setViewRoundAndShadow(view : UIView){
-        //为轮廓添加阴影和圆角
-        view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
-        view.layer.shadowOffset = CGSize.init()//(0,0)时是四周都有阴影
-        view.layer.shadowColor = #colorLiteral(red: 0.4756349325, green: 0.4756467342, blue: 0.4756404161, alpha: 1);
-        view.layer.shadowOpacity = 0.8;
-        view.layer.shadowRadius = 5
-        view.layer.cornerRadius = 15
-        view.layer.masksToBounds = false
-        view.layer.borderColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-        view.layer.borderWidth = 0.25//设置边框线条粗细
-        
     }
 }
 

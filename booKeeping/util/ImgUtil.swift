@@ -13,7 +13,7 @@ class ImgUtil {
     //Convert a UIImage representation to a base64
     func convertImageToBase64(image: UIImage) -> String {
         let imageData = image.pngData()!
-        print(imageData.base64EncodedString(options: Data.Base64EncodingOptions.lineLength64Characters))
+//        print(imageData.base64EncodedString(options: Data.Base64EncodingOptions.lineLength64Characters))
         return imageData.base64EncodedString(options: .init(rawValue: 0))
     }
     
@@ -25,6 +25,12 @@ class ImgUtil {
         return UIImage(data: imageData)!
     }
     
-    
+    //获取存储的照片
+    func getSavedImage(named: String) -> UIImage? {
+        if let dir = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false) {
+            return UIImage(contentsOfFile: URL(fileURLWithPath: dir.absoluteString).appendingPathComponent(named).path)
+        }
+        return nil
+    }
     
 }

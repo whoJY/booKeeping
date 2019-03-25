@@ -51,24 +51,49 @@ UINavigationControllerDelegate {
             lockSwitch.frame =  CGRect.init(x: 350, y: 5, width: 20, height: 15)
             lockSwitch.addTarget(self, action: #selector(switchDidChange(_:)), for: .valueChanged)
             cell.addSubview(lockSwitch)
+            //如果用户已经设置上锁，设置开关打开，否则关闭
+            lockSwitch.isOn = locked()
+           
             
         }
         return cell
     }
     
     @objc func switchDidChange(_ sender: UISwitch){
+        let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
         if (!sender.isOn){//若开关打开，要关闭开关，则需验证
             // 验证指纹，保存到设置
             var res: Bool = false
             Finger().userFigerprintAuthenticationTipStr("请验证指纹")
-            while (!Finger.finished){//等待指纹验证结果
-                
+            while (true){//等待指纹验证结果
+                print("")
+                if (Finger.finished){
+                    break
+                }
             }
             res = Finger.result//获取验证结果
+            print("验证结果\(res)")
             if (res == true){//验证通过，关闭按钮
+                //保存设置
                 sender.isOn = false
+                do {
+                    try self.context.fetch(request)[0].touchIDLocked = false
+                    try  context.save()
+                }catch{
+                    print("保存设置出错")
+                }
             }else{//验证未通过，按钮仍然打开
                 sender.isOn = true
+            }
+            
+        }else{
+            
+            //保存设置
+            do {
+              try self.context.fetch(request)[0].touchIDLocked = true
+                try  context.save()
+            }catch{
+              print("保存设置出错")
             }
             
         }
@@ -130,7 +155,7 @@ UINavigationControllerDelegate {
         let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
         do {
             let portraitPath = try self.context.fetch(request)[0].portraitPath
-            print("path is \(portraitPath)")
+            print("path is \(String(describing: portraitPath))")
             portrait.image = getSavedImage(named: portraitPath ?? "pickedimage.jpg")
             testImage = portrait.image
             
@@ -181,7 +206,7 @@ UINavigationControllerDelegate {
                 alertC.addAction(action4)
                 self.present(alertC, animated: true, completion: nil)
                 
-            }else{//如果没有登录
+            }else{//如果没有登录,跳转登录界面
                 let vc = self.storyboard?.instantiateViewController(withIdentifier: String(describing: type(of: loginViewController())))
                     as! loginViewController
                 if (vc.isKind(of: loginViewController.self)){
@@ -190,7 +215,6 @@ UINavigationControllerDelegate {
             }
             
         }catch{
-            
             print("登录服务出现问题~")
         }
         
@@ -205,10 +229,7 @@ UINavigationControllerDelegate {
     ///   - picker: 图片选择控制器
     ///   - info: 图片信息
     func imagePickerController(_ picker: UIImagePickerController,didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]){
-        //        print("media type: \(String(describing: info["UIImagePickerControllerMediaType"]))")
-        //        print("crop rect: \(String(describing: info["UIImagePickerControllerCropRect"]))")
-        //        print("reference url: \(String(describing: info["UIImagePickerControllerReferenceURL"]))")
-        print("hello")
+        print("选择图片")
         //获取选择的原图
         let pickedImage = info[UIImagePickerController.InfoKey.originalImage] as! UIImage
         portrait.image = pickedImage
@@ -220,6 +241,12 @@ UINavigationControllerDelegate {
                  let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
                  try self.context.fetch(request)[0].portraitPath = "portrait.jpg"
                  try context.save()
+                //将图片上传到服务器(去除个人id即电话号码)
+                let id = try self.context.fetch(request)[0].userID ?? "unknown id"
+                let imgBase64 = ImgUtil().convertImageToBase64(image: pickedImage)
+                HttpUtil().askWebService("uploadImg", id, imgBase64)
+                
+                
             }catch{
                 print("图片路径存储失败")
             }
@@ -273,15 +300,36 @@ UINavigationControllerDelegate {
     
     @IBAction func test2(_ sender: UIButton) {
      image2.image =  ImgUtil.convertBase64ToImage(imageString: temp!)
-
     }
     
     
     @IBAction func uploadImg(_ sender: UIButton) {
-        HttpUtil().askWebService("uploadImg", temp!, "")
+//        print("数据:")
+//        print(temp!)
+        HttpUtil().askWebService("uploadImg","18873219857", temp!)
         
 //        HttpUtil().testHtpp(str: "hello")
     }
+    
+
+    @IBAction func uploadDate(_ sender: UIButton) {
+    
+    let consArr = transUtil(EverydayDetailsViewController.everydayDetails)
+    let jsonStr = JsonUtil().convertArrToJsonStr(consArr)
+        HttpUtil().askWebService("uploadConsumption", jsonStr, "")
+    }
+    
+    
+    //将coredata数据数组转为consumption(codable)数组
+    func transUtil(_ details:[EverydayDetails])->[Consumption]{
+        var res:[Consumption] = []
+        for i in details {
+                let temp : Consumption = Consumption(id: i.id ?? "unknown id", user_id: i.user_id ?? "unknown userID", name: i.name ?? "unknow name", kind: i.kind ?? "unknown kind", price: i.price, date: DateUtil().DateToString(i.date!))
+            res.append(temp)
+            }
+        return res
+    }
+    
     
     
     //获取存储的照片
@@ -303,18 +351,17 @@ UINavigationControllerDelegate {
         return true
     }
     
-    
-    
-    
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-     // Get the new view controller using segue.destination.
-     // Pass the selected object to the new view controller.
-     }
-     */
+    //验证用户是否设置锁
+    func locked()->Bool{
+        var  locked = false;
+        do {
+            let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
+            locked = try self.context.fetch(request)[0].touchIDLocked
+        }catch{
+            print("无法获取是否上锁")
+        }
+        return locked
+    }
     
 }
 

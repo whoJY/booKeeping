@@ -22,7 +22,7 @@ class DetailsDao{
         newDetail.price = detailPrice
         newDetail.date = detailDate
         newDetail.kind = kind
-        newDetail.photoName = photoName
+//        newDetail.photoName = photoName
         do{
             try context.save()
             print("已保存")

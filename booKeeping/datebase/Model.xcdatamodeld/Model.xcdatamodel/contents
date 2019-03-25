@@ -2,10 +2,11 @@
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="14460.32" systemVersion="18D109" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="EverydayDetails" representedClassName=".EverydayDetails" syncable="YES" codeGenerationType="class">
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="kind" attributeType="String" syncable="YES"/>
         <attribute name="name" attributeType="String" syncable="YES"/>
-        <attribute name="photoName" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="price" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="user_id" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
     <entity name="UserSettings" representedClassName=".UserSettings" syncable="YES" codeGenerationType="class">
         <attribute name="alarmTime" optional="YES" attributeType="String" syncable="YES"/>
@@ -13,9 +14,10 @@
         <attribute name="isLogined" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
         <attribute name="portraitPath" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="touchIDLocked" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="userID" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
     <elements>
-        <element name="EverydayDetails" positionX="-54" positionY="-9" width="128" height="120"/>
-        <element name="UserSettings" positionX="-54" positionY="27" width="128" height="120"/>
+        <element name="EverydayDetails" positionX="-54" positionY="-9" width="128" height="135"/>
+        <element name="UserSettings" positionX="-54" positionY="27" width="128" height="135"/>
     </elements>
 </model>

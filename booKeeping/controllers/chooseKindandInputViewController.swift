@@ -13,6 +13,13 @@ class chooseKindandInputViewController: UIViewController {
     var  tempDetailsDataArray2 = [EverydayDetails]()
     
     
+    
+    @IBOutlet weak var tipBar: UILabel!
+    @IBOutlet weak var tipBar2: UILabel!
+    @IBOutlet weak var putBtn: UIButton!
+    @IBOutlet weak var getBtn: UIButton!
+    
+    
     @IBOutlet weak var eatBtn:UIButton!
     @IBOutlet weak var healthBtn:UIButton!
     @IBOutlet weak var studyBtn:UIButton!
@@ -83,6 +90,11 @@ class chooseKindandInputViewController: UIViewController {
     
     //初始化按钮tag
     func initBtn(){
+        //支出收入按钮tag
+        getBtn.tag = 1000
+        putBtn.tag = 1001
+        tipBar2.backgroundColor = #colorLiteral(red: 0.9928546548, green: 0.8518775105, blue: 0.265756309, alpha: 1)
+        
         
         //禁止弹出系统键盘,只允许从键盘区域输入数字
         inputPriceTextFd.isUserInteractionEnabled = false
@@ -257,7 +269,7 @@ class chooseKindandInputViewController: UIViewController {
     //创建随机数据
     public  func create999Details(){
         
-        for _ in 0...99{
+        for _ in 0...400{
             let randomName = String.randomStr(len: 8)
             let randomPrice = 999.arc4random+1
             
@@ -272,15 +284,70 @@ class chooseKindandInputViewController: UIViewController {
             let randomData = Date(timeIntervalSince1970: Double(myInt-randomDataInt))
             
             DetailsDao().saveDao(randomName,Double(randomPrice), randomData,String.randomKind(),"clothes.png")
+        }
+    }
+    
+    
+    func createRealDate(){
+        
+        for _ in 1...150{
+            let ran = StringUtil().randomData()
+            let randomName = ran.name
+            let randomPrice = ran.price
+            let kind  = ran.kind
             
+            // using current date and time as an example
+            let someDate = Date()
+            // convert Date to TimeInterval (typealias for Double)
+            let timeInterval = someDate.timeIntervalSince1970
+            // convert to Integer
+            let myInt = Int(timeInterval)
+            
+            let randomDataInt = 20000000.arc4random+1
+            let randomData = Date(timeIntervalSince1970: Double(myInt-randomDataInt))
+            
+            DetailsDao().saveDao(randomName,Double(randomPrice), randomData,kind,"others.png")
         }
         
         
     }
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     func setRoundBtn(_ view:UIView){
         view.layer.cornerRadius = view.frame.size.height/2
         view.layer.masksToBounds = true
+    }
+    
+    
+    
+    //
+    //收入支出按钮选中样式提醒
+    //
+    @IBAction func chosen(_ sender: UIButton) {
+        switch sender.tag {
+        case 1000://收入按钮
+            tipBar.backgroundColor = #colorLiteral(red: 0.9971700311, green: 0.7983285785, blue: 0.1761142612, alpha: 1)
+            tipBar2.backgroundColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+        case 1001://支出按钮
+            tipBar.backgroundColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+            tipBar2.backgroundColor = #colorLiteral(red: 0.9971700311, green: 0.7983285785, blue: 0.1761142612, alpha: 1)
+        default:
+            break
+        }
+        
     }
     
     

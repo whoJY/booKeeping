@@ -44,7 +44,6 @@ class loginViewController: UIViewController {
     
     var timer:Timer? = nil
     
-    
     //请求验证码
     @IBAction func askForValidate(sender:UIButton?){
         
@@ -71,17 +70,18 @@ class loginViewController: UIViewController {
         
     }
     
-    
     //登录按钮
     @IBAction func login(_ sender: UIButton) {
         let phoneNumber = tel.text
         let code = validateCode.text
+        //验证电话号码
         if (phoneNumber != nil  && isvalitemobile(phoneNumber!)){
         print("电话号码合法")
+            //获取服务器回应信息
             let response = HttpUtil().askWebService("validataCode", phoneNumber!,code!)
-            
+
             switch response{
-            case "passed"://跳转设置密码界面
+            case "passed"://验证通过，跳转设置密码界面
                 loginViewController.tel = phoneNumber
                 let vc = self.storyboard?.instantiateViewController(withIdentifier: String(describing: type(of: pwdViewController())))
                     as! pwdViewController
@@ -89,8 +89,8 @@ class loginViewController: UIViewController {
                     self.present(vc, animated: true, completion: nil)
                 }
                 break
-            case  "registered"://跳转我的界面，获取所有信息
-                //获取数据
+            case  "registered"://验证通过，且之前就已经注册。跳转我的界面，获取所有信息
+                //获取数据(多线程)
                 
                 backBtn.sendActions(for: .touchUpInside)
                 break;
@@ -101,7 +101,7 @@ class loginViewController: UIViewController {
                 showMsgbox(_message: "请确保手机号一致")
                 break
             default://提示信息
-                showMsgbox(_message: "未知错误")
+                showMsgbox(_message: response)
                 break
             }
             
@@ -113,7 +113,6 @@ class loginViewController: UIViewController {
         
     }
     
-
     static  var second = 60
     //设置验证码倒计时
     @objc func setValidateBtn(){
@@ -127,24 +126,12 @@ class loginViewController: UIViewController {
         }
     }
     
-    
-    // 停止计时
-    func stopTimer() {
-        if timer != nil {
-            timer!.invalidate() //销毁timer
-            timer = nil
-        }
-    }
-    
-    
-    
     //验证号码是否合法
     func isvalitemobile(_ phoneNumber:String) -> Bool {
         let mobileRegex = "^((13[0-9])|(15[^4,\\D])|(18[0,0-9])|(17[0,0-9]))\\d{8}$"
         let mobileTest:NSPredicate = NSPredicate(format: "SELF MATCHES %@", mobileRegex)
         return mobileTest.evaluate(with: phoneNumber)
     }
-    
     
     //显示提示信息
     func showMsgbox(_message: String, _title: String = "提示"){
@@ -180,13 +167,19 @@ class loginViewController: UIViewController {
         setViewRoundAndShadow(view: styleView)
     }
 
-    
     @IBAction func back(segue: UIStoryboardSegue) {
         //再次返回
         backBtn.sendActions(for: .touchUpInside)
         
     }
     
+    // 停止计时
+    func stopTimer() {
+        if timer != nil {
+            timer!.invalidate() //销毁timer
+            timer = nil
+        }
+    }
     
     //设置view风格
     func setViewRoundAndShadow(view : UIView){

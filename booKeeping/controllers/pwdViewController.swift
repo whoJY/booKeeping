@@ -33,17 +33,11 @@ class pwdViewController: UIViewController {
                 let response = HttpUtil().askWebService("setUserPwd", loginViewController.tel!,pwd1!)
                 switch response{
                 case "successSetPwd"://成功设置密码
+                    //同步数据
+                    
                     //跳转我的界面
-                    
                     backBtn.sendActions(for: .touchUpInside)
-                    
-//                    let vc = self.storyboard?.instantiateViewController(withIdentifier: String(describing: type(of: meViewController())))
-//                        as! meViewController
-//                    if (vc.isKind(of: meViewController.self)){
-//                        self.present(vc, animated: true, completion: nil)
-//                    }
                     break
-                    
                 case "error"://出现错误
                     showMsgbox(_message: "未知错误")
                     break;
@@ -58,11 +52,6 @@ class pwdViewController: UIViewController {
             }
         }
     }
-    
-    
-    
-    
-    
     
     //初始化UI
     func initUI(){
@@ -87,8 +76,6 @@ class pwdViewController: UIViewController {
        
     }
 
-    
-    
     //显示提示信息
     func showMsgbox(_message: String, _title: String = "提示"){
         

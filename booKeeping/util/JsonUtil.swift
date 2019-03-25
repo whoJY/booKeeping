@@ -8,6 +8,25 @@
 
 import Foundation
 class JsonUtil {
+    
+    
+    func convertArrToJsonStr(_ consArr:[Consumption])->String{
+        var json :String = ""
+        do {
+            
+            let jsonEncoder = JSONEncoder()
+            let jsonData = try jsonEncoder.encode(consArr)
+            json = String(data: jsonData, encoding: String.Encoding.utf8) ?? ""
+
+        }catch
+        {
+            print("convert to json Str err")
+        }
+        
+        return json
+    }
+    
+    
     // Convert from NSData to json object
     func nsdataToJSON(data: NSData) -> AnyObject? {
         do {
