@@ -560,8 +560,8 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         
         print("groups 0 is \(groups[0]),groups[max] is \(groups[groups.count-1])")
         
-        //添加一天后其他视图下移190
-        viewMoveDown(EverydayDetailsViewController.everydayTotalArr,190, includeLastView: true,defaultStartIndex: 0)
+        //添加一天后其他视图下移180
+        viewMoveDown(EverydayDetailsViewController.everydayTotalArr,180, includeLastView: false,defaultStartIndex: 0)
         
         //将所有view复制备份，勿删！（备份的数据给addinoldday用）
         EverydayDetailsViewController.everydayTotalArrCopy = EverydayDetailsViewController.everydayTotalArr
@@ -603,11 +603,11 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
             }
         }
         
-//        if (includeLastView){//如果包括最后一位也要移动
+        if (includeLastView){//如果包括最后一位也要移动
 //            viewArr[viewArr.count-1].frame.origin.y +=  CGFloat(offSet)
 //        }else{
-//            viewArr[0].frame.origin.y -=  CGFloat(offSet)
-//        }
+            viewArr[0].frame.origin.y -=  CGFloat(offSet)
+        }
     }
     
     
