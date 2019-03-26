@@ -76,15 +76,15 @@ class statisticsViewController: UIViewController, UITableViewDelegate, UITableVi
 
         
         cell.name.text = ranking?[indexPath.row][0]//取出种类名称
-        cell.money.text = ranking?[indexPath.row][1] //取出种类花费
+        let moneyStr = Double((ranking?[indexPath.row][1])!)?.cleanZero()
+        cell.money.text = moneyStr //取出种类花费
         var percent:Double = Double(ranking![indexPath.row][2])! //百分比（小数形式）
         percent = percent < 0.001 ? 0.001:percent //当percent低于0.001，设置为0.001
-        let percentStr = String(format: "%.2f", percent)
+        let percentStr = String(format: "%.2f", percent*100)+"%"
 //        print("percentStr is \(percentStr)")
-        cell.percent.text = String(Double(percentStr)!*100)+"%" //设置种类比例数值
+        cell.percent.text = percentStr //设置种类比例数值
         cell.sliderPercent.setProgress(Float(percent), animated: true)//设置百分比进度条
         cell.icon.image = UIImage(named: (ranking?[indexPath.row][0])!+".png")//设置种类Icon
-//        cell.sliderPercent.va
         return cell
        
 
@@ -384,3 +384,11 @@ extension UIButton{
     }
    
 }
+extension Double {
+//去除小数点多余0
+    func cleanZero()->String{
+        return self.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", self):String(self)
+    }
+    
+}
+
