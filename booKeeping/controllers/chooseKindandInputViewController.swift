@@ -163,7 +163,12 @@ class chooseKindandInputViewController: UIViewController {
         }
         
         
-        
+
+    }
+    
+    @IBAction func callBackKeyBoard(_ sender: UIButton) {
+        print("收起键盘")
+        inputNameTextFd.resignFirstResponder()
     }
     
     
