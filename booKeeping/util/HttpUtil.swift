@@ -182,7 +182,7 @@ class HttpUtil{
         }
     print("网络操作完成.")
         HttpUtil.doneHttp = false //还原标志位
-    HttpUtil.httpResult = "11"
+//    HttpUtil.httpResult = "HttpUtil.httpResult"
         return HttpUtil.httpResult
     }
     
@@ -191,7 +191,8 @@ class HttpUtil{
     //在服务器端设置标志位，然后根据标志位移除无关信息
     func parseResult(xmlStr:String)->String{
         var res2 = xmlStr.components(separatedBy: "FLAG")
-        return res2[1]
+        let result = res2.indices.count>1 ? res2[1]:"done"
+        return result
     }
     
     /*  创建Post请求 */
