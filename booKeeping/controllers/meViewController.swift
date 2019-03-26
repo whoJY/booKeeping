@@ -18,6 +18,14 @@ UINavigationControllerDelegate {
     @IBOutlet weak var meMenuTableView: UITableView!
     @IBOutlet weak var headBtn: UIButton!
     
+    @IBOutlet weak var testBtn1: UIButton!
+    @IBOutlet weak var testBtn2: UIButton!
+    
+    @IBOutlet weak var testBtn3: UIButton!
+    @IBOutlet weak var testBtn4: UIButton!
+    
+    @IBOutlet weak var testImg: UIImageView!
+    
     var menu =  [ ["定时提醒","导出数据","解锁密码","","帮助","关于"],["alarm.png","share.png","touchID.png","","help.png","about.png"] ]
     
     //设置头像框为圆形
@@ -52,7 +60,7 @@ UINavigationControllerDelegate {
             lockSwitch.addTarget(self, action: #selector(switchDidChange(_:)), for: .valueChanged)
             cell.addSubview(lockSwitch)
             //如果用户已经设置上锁，设置开关打开，否则关闭
-            lockSwitch.isOn = locked()
+//            lockSwitch.isOn = locked()
            
             
         }
@@ -146,6 +154,11 @@ UINavigationControllerDelegate {
         self.meMenuTableView.tableFooterView = UIView()
         initPortrait()
         initUI()
+        testBtn1.isHidden = true
+        testBtn2.isHidden = true
+        testBtn3.isHidden = true
+        testBtn4.isHidden = true
+        testImg.isHidden = true
         
     }
     
@@ -154,10 +167,16 @@ UINavigationControllerDelegate {
     public func initUI(){
         let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
         do {
-            let portraitPath = try self.context.fetch(request)[0].portraitPath
-            print("path is \(String(describing: portraitPath))")
-            portrait.image = getSavedImage(named: portraitPath ?? "pickedimage.jpg")
-            testImage = portrait.image
+            let userSetting = try self.context.fetch(request)
+            if (userSetting.count == 0){
+                print("portrait")
+                portrait.image = UIImage(named: "head portrait.jpg")
+            }else{
+                let portraitPath = userSetting[0].portraitPath
+                portrait.image = getSavedImage(named: portraitPath ?? "pickedimage.jpg")
+            }
+            
+
             
         }catch{
             
@@ -179,6 +198,8 @@ UINavigationControllerDelegate {
         var logged : Bool
         do {
             logged = try self.context.fetch(request)[0].isLogined
+            let test = try self.context.fetch(request)
+            print(test)
             if (logged){//如果已经登录
                 
                 let alertC = UIAlertController(title: "选择操作", message: nil, preferredStyle: .actionSheet)
@@ -244,7 +265,10 @@ UINavigationControllerDelegate {
                 //将图片上传到服务器(去除个人id即电话号码)
                 let id = try self.context.fetch(request)[0].userID ?? "unknown id"
                 let imgBase64 = ImgUtil().convertImageToBase64(image: pickedImage)
-                HttpUtil().askWebService("uploadImg", id, imgBase64)
+                DispatchQueue.global().async {//多线程上传图片
+                    HttpUtil().askWebService("uploadImg", id, imgBase64)
+                }
+                
                 
                 
             }catch{
@@ -257,7 +281,7 @@ UINavigationControllerDelegate {
         
     }
     
-    
+ 
     /// 取消选择图片
     ///
     /// - Parameter picker: 图片选择控制器
