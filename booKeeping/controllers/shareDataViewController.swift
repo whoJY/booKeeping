@@ -8,6 +8,7 @@
 
 import UIKit
 
+
 class shareDataViewController: UIViewController,UITableViewDelegate,UITableViewDataSource {
     @IBOutlet weak var exportDate: UIButton!
     @IBOutlet weak var chooseTimeView: UIView!
@@ -22,8 +23,8 @@ class shareDataViewController: UIViewController,UITableViewDelegate,UITableViewD
         chooseTimeTableView.delegate=self
         chooseTimeTableView.dataSource = self
         super.viewDidLoad()
-     initUI()
-
+        initUI()
+        
         // Do any additional setup after loading the view.
     }
     
@@ -35,30 +36,30 @@ class shareDataViewController: UIViewController,UITableViewDelegate,UITableViewD
     }
     
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
-        
-        return 2
-    }
     
     var tips = ["开始时间","结束时间"]
     var times = ["点击设置","点击设置"]
     
     //加载table view数据
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-       chooseTimeTableView.tableFooterView = UIView()
+        chooseTimeTableView.tableFooterView = UIView()
         let cellIdentifier = "shareDateCell"
         let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as! shareDateTableViewCell
         //设置cell
         cell.tips.text? = tips[indexPath.row]
         cell.time.text? = times[indexPath.row]
         return cell
-            
-        }
-
+        
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return 2
+    }
+    
+    
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    
+        
         //设置标签的tag
         btnTag = indexPath.row
         //显示选择时间区域
@@ -82,74 +83,69 @@ class shareDataViewController: UIViewController,UITableViewDelegate,UITableViewD
         times[btnTag] = DateUtil().DateToStringYMD(date)
         chooseTimeTableView.reloadData()
         hiddenGetTime(true)
- 
+        
     }
     
     @IBAction func cancel(_ sender:UIButton){
         //不显示选择时间区域
         hiddenGetTime(true)
-    
-    }
-    
-    //显示提示信息
-    func showMsgbox(_message: String, _title: String = "提示"){
-        
-        let alert = UIAlertController(title: _title, message: _message, preferredStyle: UIAlertController.Style.alert)
-        let btnOK = UIAlertAction(title: "好的", style: .default, handler: nil)
-        alert.addAction(btnOK)
-        self.present(alert, animated: true, completion: nil)
         
     }
+    
+    
     
     
     //点击导出按钮
     @IBAction func export(_ sender: UIButton) {
-        
-        let startTime = DateUtil().StringToDate(times[0])//开始时间
-        let endTime = DateUtil().StringToDate(times[1])//结束时间
-        let exportData = DetailsDao().searchByDate(startTime, endTime)
-        if (exportData.count == 0){
-            //提示此时间段没有数据
-            showMsgbox(_message: "这段时间没有数据~")
-        }else{
-            //创建文件
-        createPDF(data: exportData)
-        createCSV(data: exportData)
-        shareSheet()  //出现分享sheet
+        if (times[0] != "点击设置" && times[1] != "点击设置"){//确保用户选择后
+            
+            let startTime = DateUtil().StringToDate(times[0])//开始时间
+            let endTime = DateUtil().StringToDate(times[1])//结束时间
+            let exportData = DetailsDao().searchByDate(startTime, endTime)
+            if (exportData.count == 0){
+                //提示此时间段没有数据
+                showMsgbox(_message: "这段时间没有数据~")
+            }else{
+                //创建文件
+                createPDF(data: exportData)
+                createCSV(data: exportData)
+                shareSheet()  //出现分享sheet
+            }
+            
         }
-        
     }
-    
+  
     
     //分享
     func  shareSheet(){
-
-        let fileName = "Tasks.csv"
+        
+        let fileName = "booKeeping历史数据.csv"
         let path = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
         
-            let objectsToShare = [path]
-            let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
-            self.present(activityVC, animated: true, completion: nil)
-            
-      
+        let objectsToShare = [path]
+        let activityVC = UIActivityViewController(activityItems: objectsToShare, applicationActivities: nil)
+        self.present(activityVC, animated: true, completion: nil)
+        
+        
         
     }
     
     var tasks=["1","2","3","4"]
     //生成csv文件
     func createCSV(data:[EverydayDetails]){
-        let fileName = "Tasks.csv"
+        let fileName = "booKeeping历史数据.csv"
         let path = NSURL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
-        var csvText = "name,kind,price\n"
+        var csvText = "name\t kind\t price\t data\t\n"
         
         for i in data {
             
-            let newLine = "\(String(describing: i.name!)),\(String(describing: i.kind!)),\(i.price)\n"
+            let newLine = "\(String(describing: i.name!))\t \(String(describing: i.kind!))\t \(i.price)\t \(DateUtil().DateToString(i.date!))\t\n"
+            
             csvText.append(newLine)
         }
         
         do {
-            try csvText.write(to: path!, atomically: true, encoding: String.Encoding.utf8)
+            try csvText.write(to: path!, atomically: true, encoding: String.Encoding.utf16)
         } catch {
             print("Failed to create file")
             print("\(error)")
@@ -195,14 +191,15 @@ class shareDataViewController: UIViewController,UITableViewDelegate,UITableViewD
         pdfData.write(toFile: "\(documentsPath)/file.pdf", atomically: true)
         print("created PDF success")
     }
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    
+    //显示提示信息
+    func showMsgbox(_message: String, _title: String = "提示"){
+        
+        let alert = UIAlertController(title: _title, message: _message, preferredStyle: UIAlertController.Style.alert)
+        let btnOK = UIAlertAction(title: "好的", style: .default, handler: nil)
+        alert.addAction(btnOK)
+        self.present(alert, animated: true, completion: nil)
+        
     }
-    */
-
+    
 }
