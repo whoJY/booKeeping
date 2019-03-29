@@ -21,7 +21,7 @@ class ImgUtil {
     // Convert a base64 representation to a UIImage
     //
     class func convertBase64ToImage(imageString: String) -> UIImage {
-        let imageData = Data(base64Encoded: imageString, options: .init(rawValue: 0))!
+        let imageData = Data(base64Encoded: imageString, options: .ignoreUnknownCharacters)!
         return UIImage(data: imageData)!
     }
     
