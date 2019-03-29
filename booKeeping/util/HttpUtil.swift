@@ -10,6 +10,197 @@ import Foundation
 import SWXMLHash
 class HttpUtil{
     
+  
+    
+    //通用头
+    let soapHead = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+        "<soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
+    "<soap:Body>"
+    //通用尾部
+    let soapEnd = "</soap:Body>" +
+    "</soap:Envelope>\n"
+    
+    //测试拼接
+    let soapMsg2  = "<say xmlns=\"http://tempuri.org/\">" + "<name>"
+    let soapMsg3 = "</name>"+"</say>"
+   
+    //请求验证码拼接
+    let smsSoapMsg1 = "<askValidate xmlns=\"http://tempuri.org/\">" + "<phoneNumber>"
+    let smsSoapMsg2 = "</phoneNumber>" + "</askValidate>"
+    
+    //验证验证码拼接
+    let valiSoapMsg1 = "<validataCode xmlns=\"http://tempuri.org/\">" + "<tel>"
+    let valiSoapMsg2 = "</tel>"+"<code>"
+    let valiSoapMsg3 = "</code>"+"</validataCode>"
+    
+    //设置密码拼接
+    let setUserPwdSoapMsg1 = "<setUserPwd xmlns=\"http://tempuri.org/\">" + "<tel>"
+    let setUserPwdSoapMsg2 = "</tel>"+"<pwd>"
+    let setUserPwdSoapMsg3 = "</pwd>"+"</setUserPwd>"
+    
+    
+    //上传图片
+    let imgSoapMsg1 = "<uploadImg xmlns=\"http://tempuri.org/\">" + "<user_id>"
+    let imgSoapMsg2 = "</user_id>" +  "<base64>"
+    let imgSoapMsg3 = "</base64>" + "</uploadImg>"
+    
+    //下载图片
+    let downloadImg1 = "<downloadImg xmlns=\"http://tempuri.org/\">" + "<tel>"
+    let downloadImg2 = "</tel>" + "</downloadImg>"
+    
+    //上传json
+    let jsonSoapMsg1 = "<uploadConsumption xmlns=\"http://tempuri.org/\">" + "<jsonStr>"
+    let jsonSoapMsg2 = "</jsonStr>" + "</uploadConsumption>"
+    
+    //下载json
+    let downloadJsonSoapMsg1 = "<downloadDetails xmlns=\"http://tempuri.org/\">" + "<tel>"
+    let downloadJsonSoapMsg2 = "</tel>" + "</downloadDetails>"
+    
+    //测试服务url
+    let url = "http://129.204.12.94:8080/helloservice/services/HelloService"
+    //发送短信服务url
+    let smsUrl = "http://129.204.12.94:8080/bookeepingWebService/services/SMS"
+    //ConsumptionService服务url
+    let ConsumptionUrl = "http://129.204.12.94:8080/bookeepingWebService/services/ConsumptionService"
+    //上传img url
+    let imgUrl = "http://129.204.12.94:8080/bookeepingWebService/services/ImgUpload"
+    //下载img url
+    let imgUrl2 = "http://129.204.12.94:8080/bookeepingWebService/services/Download"
+    //上传json数据url
+    let jsonUrl = "http://129.204.12.94:8080/bookeepingWebService/services/objectUpload"
+    
+    func askWebService(_ whichService:String,_ para1:String,_ para2_optional:String)->String{
+        print("service is \(whichService)")
+        switch whichService {
+        case "askValidate": //请求验证
+            let soapMsg = soapHead+smsSoapMsg1+para1+smsSoapMsg2+soapEnd
+            return HttpPostViaWS(soapMsg, url: smsUrl)
+        case "validataCode"://验证 验证码 是否正确
+            let soapMsg = soapHead+valiSoapMsg1+para1+valiSoapMsg2+para2_optional+valiSoapMsg3+soapEnd
+             return HttpPostViaWS(soapMsg, url: smsUrl)
+        case "setUserPwd"://设置密码
+            let soapMsg = soapHead+setUserPwdSoapMsg1+para1+setUserPwdSoapMsg2+para2_optional+setUserPwdSoapMsg3+soapEnd
+            return HttpPostViaWS(soapMsg, url: smsUrl)
+        case "uploadImg"://上传图片
+            let soapMsg = soapHead+imgSoapMsg1+para1+imgSoapMsg2+para2_optional+imgSoapMsg3+soapEnd
+            return HttpPostViaWS(soapMsg, url: imgUrl)
+        case "downloadImg": //下载图片
+            let soapMsg = soapHead+downloadImg1+para1+downloadImg2+soapEnd
+            return HttpPostViaWS(soapMsg, url: imgUrl2)
+        case "uploadConsumption"://上传json
+            let soapMsg = soapHead+jsonSoapMsg1+para1+jsonSoapMsg2+soapEnd
+            return HttpPostViaWS(soapMsg, url: jsonUrl)
+        case "downloadDetails": //下载json
+            let soapMsg = soapHead+downloadJsonSoapMsg1+para1+downloadJsonSoapMsg2+soapEnd
+            return HttpPostViaWS(soapMsg, url: imgUrl2)
+        default:
+            break
+        }
+        return "error"
+    }
+    
+    
+    public   func  testHtpp(str:String){
+        let soapMsg = soapHead+imgSoapMsg1+str+imgSoapMsg2+soapEnd
+         HttpPostViaWS(soapMsg, url: imgUrl)
+    }
+    
+    
+    static var doneHttp = false
+    static var httpResult = ""
+    
+    //通过webservice 交互数据
+   private func HttpPostViaWS(_ soapMsg:String,url:String)->String{
+        
+        let request = NSMutableURLRequest(url:NSURL(string: url)! as URL)
+        let msgLength = String(soapMsg.characters.count)
+        request.httpMethod = "POST"
+        request.httpBody = soapMsg.data(using: String.Encoding.utf8, allowLossyConversion: false)
+        request.addValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        request.addValue(msgLength, forHTTPHeaderField:"Content-Length")
+        request.addValue("say", forHTTPHeaderField: "SOAPAction")
+        request.timeoutInterval = 20
+        let session = URLSession.shared
+        //(3) 发送请求
+        let task = session.dataTask(with: request as URLRequest, completionHandler: { (data, response, error) -> Void in
+            if let e = error {
+                print("ERROR:----------------\(e)")
+            }
+            var errStr = error.debugDescription
+            if (errStr.contains("offline")){
+                HttpUtil.httpResult = "ERROR:" + "offLine"
+            }else if (errStr.contains("Could not connect to the server")){
+                HttpUtil.httpResult = "ERROR:" + "Could not connect to the server"
+            }else if (errStr.contains("The request timed out.")){
+                HttpUtil.httpResult = "ERROR:" + "The request timed out."
+            }else{
+                HttpUtil.httpResult = "ERROR:" + "other error"
+            }
+            print("data is \(String(describing: data))")
+            //如果有返回结果,将返回结果转为String
+            if (data != nil){
+            let res = NSString(data:data! ,encoding: String.Encoding.utf8.rawValue)! as String
+                            HttpUtil.httpResult = self.parseResult(xmlStr: res)
+            }
+//            print("hello from http")
+//            print("\n\n\(HttpUtil.httpResult)\n\n")
+            HttpUtil.doneHttp = true
+        })
+        task.resume()
+        
+        print("等待网络操作...")
+        //等待http执行结束
+        while(!HttpUtil.doneHttp){
+        }
+        print("网络操作完成.")
+        HttpUtil.doneHttp = false //还原标志位
+        return HttpUtil.httpResult
+    }
+    
+    
+    
+    //在服务器端设置标志位，然后根据标志位移除无关信息
+    func parseResult(xmlStr:String)->String{
+        var res2 = xmlStr.components(separatedBy: "FLAG")
+        let result = res2.indices.count>1 ? res2[1]:"done"
+        return result
+    }
+    
+    
+    /*  创建Post请求 */
+    func PostRequest(data:String,str1:String)
+    {
+        //(1）设置请求路径
+        let url:NSURL = NSURL(string:"http://129.204.12.94:8080/helloservice/services/HelloService?name=hujinyu")!//不需要传递参数
+        //(2) 创建请求对象
+        let request:NSMutableURLRequest = NSMutableURLRequest(url: url as URL) //默认为get请求
+        //        request.Headers.Add( "SOAPAction", "say" );
+        //        request.addValue("SOAPAction", "say" )
+        request.timeoutInterval = 5.0 //设置请求超时为5秒
+        request.httpMethod = "POST"  //设置请求方法
+        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        //设置请求体
+        
+        //把拼接后的字符串转换为data，设置请求体
+        print(data)
+        request.httpBody = data.data(using: .utf8)
+        let session = URLSession.shared
+        //(3) 发送请求
+        let task = session.dataTask(with: request as URLRequest, completionHandler: { (data, response, error) -> Void in
+            print("what is this")
+            
+            var dict:NSDictionary? = nil
+            do {
+                dict  = try JSONSerialization.jsonObject(with: data!, options: JSONSerialization.ReadingOptions.init(rawValue: 0)) as? NSDictionary
+            } catch {
+                
+            }
+            print("dict is \(dict)")
+            
+        })
+        task.resume()
+    }
+    
     func GET(_ urlStr:String)
         
     {
@@ -55,180 +246,6 @@ class HttpUtil{
         dataTask.resume()
         
     }
-    
-    //通用头
-    let soapHead = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-        "<soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
-    "<soap:Body>"
-    //通用尾部
-    let soapEnd = "</soap:Body>" +
-    "</soap:Envelope>\n"
-    
-    //测试拼接
-    let soapMsg2  = "<say xmlns=\"http://tempuri.org/\">" + "<name>"
-    let soapMsg3 = "</name>"+"</say>"
-   
-    //请求验证码拼接
-    let smsSoapMsg1 = "<askValidate xmlns=\"http://tempuri.org/\">" + "<phoneNumber>"
-    let smsSoapMsg2 = "</phoneNumber>" + "</askValidate>"
-    
-    //验证验证码拼接
-    let valiSoapMsg1 = "<validataCode xmlns=\"http://tempuri.org/\">" + "<tel>"
-    let valiSoapMsg2 = "</tel>"+"<code>"
-    let valiSoapMsg3 = "</code>"+"</validataCode>"
-    
-    //设置密码拼接
-    let setUserPwdSoapMsg1 = "<setUserPwd xmlns=\"http://tempuri.org/\">" + "<tel>"
-    let setUserPwdSoapMsg2 = "</tel>"+"<pwd>"
-    let setUserPwdSoapMsg3 = "</pwd>"+"</setUserPwd>"
-    
-    
-    //上传图片
-    let imgSoapMsg1 = "<uploadImg xmlns=\"http://tempuri.org/\">" + "<user_id>"
-    let imgSoapMsg2 = "</user_id>" +  "<base64>"
-    let imgSoapMsg3 = "</base64>" + "</uploadImg>"
-    
-    //上传json
-    let jsonSoapMsg1 = "<uploadConsumption xmlns=\"http://tempuri.org/\">" + "<jsonStr>"
-    let jsonSoapMsg2 = "</jsonStr>" + "</uploadConsumption>"
-    
-    //测试服务url
-    let url = "http://129.204.12.94:8080/helloservice/services/HelloService"
-    //发送短信服务url
-    let smsUrl = "http://129.204.12.94:8080/bookeepingWebService/services/SMS"
-    //ConsumptionService服务url
-    let ConsumptionUrl = "http://129.204.12.94:8080/bookeepingWebService/services/ConsumptionService"
-    //上传img url
-    let imgUrl = "http://129.204.12.94:8080/bookeepingWebService/services/ImgUpload"
-    //上传json数据url
-    let jsonUrl = "http://129.204.12.94:8080/bookeepingWebService/services/objectUpload"
-    
-    func askWebService(_ whichService:String,_ para1:String,_ para2_optional:String)->String{
-        print("service is \(whichService)")
-        switch whichService {
-        case "askValidate": //请求验证
-            let soapMsg = soapHead+smsSoapMsg1+para1+smsSoapMsg2+soapEnd
-            return HttpPostViaWS(soapMsg, url: smsUrl)
-        case "validataCode"://验证 验证码 是否正确
-            let soapMsg = soapHead+valiSoapMsg1+para1+valiSoapMsg2+para2_optional+valiSoapMsg3+soapEnd
-             return HttpPostViaWS(soapMsg, url: smsUrl)
-        case "setUserPwd"://设置密码
-            let soapMsg = soapHead+setUserPwdSoapMsg1+para1+setUserPwdSoapMsg2+para2_optional+setUserPwdSoapMsg3+soapEnd
-            return HttpPostViaWS(soapMsg, url: smsUrl)
-        case "uploadImg"://上传图片
-            let soapMsg = soapHead+imgSoapMsg1+para1+imgSoapMsg2+para2_optional+imgSoapMsg3+soapEnd
-            return HttpPostViaWS(soapMsg, url: imgUrl)
-        case "uploadConsumption"://上传json
-            let soapMsg = soapHead+jsonSoapMsg1+para1+jsonSoapMsg2+soapEnd
-            return HttpPostViaWS(soapMsg, url: jsonUrl)
-        default:
-            break
-        }
-        return "error"
-    }
-    
-    
-    public   func  testHtpp(str:String){
-        let soapMsg = soapHead+imgSoapMsg1+str+imgSoapMsg2+soapEnd
-         HttpPostViaWS(soapMsg, url: imgUrl)
-    }
-    
-    
-    static var doneHttp = false
-    static var httpResult = ""
-    
-    //通过webservice 交互数据
-   private func HttpPostViaWS(_ soapMsg:String,url:String)->String{
-        
-        let request = NSMutableURLRequest(url:NSURL(string: url)! as URL)
-        let msgLength = String(soapMsg.characters.count)
-        request.httpMethod = "POST"
-        request.httpBody = soapMsg.data(using: String.Encoding.utf8, allowLossyConversion: false)
-        request.addValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
-        request.addValue(msgLength, forHTTPHeaderField:"Content-Length")
-        request.addValue("say", forHTTPHeaderField: "SOAPAction")
-        request.timeoutInterval = 6
-        let session = URLSession.shared
-        //(3) 发送请求
-        let task = session.dataTask(with: request as URLRequest, completionHandler: { (data, response, error) -> Void in
-            if let e = error {
-                print("ERROR:----------------\(e)")
-            }
-            var errStr = error.debugDescription
-            if (errStr.contains("offline")){
-                HttpUtil.httpResult = "offLine"
-            }else if (errStr.contains("Could not connect to the server")){
-                HttpUtil.httpResult = "Could not connect to the server"
-            }else{
-                HttpUtil.httpResult = "other error"
-            }
-            print("data is \(String(describing: data))")
-            //如果有返回结果,将返回结果转为String
-            if (data != nil){
-            let res = NSString(data:data! ,encoding: String.Encoding.utf8.rawValue)! as String
-                //            print("result from server is \(self.parseResult(xmlStr: res))")
-                            HttpUtil.httpResult = self.parseResult(xmlStr: res)
-            }
-
-            print("\n\n\(HttpUtil.httpResult)\n\n")
-            HttpUtil.doneHttp = true
-        })
-        task.resume()
-        
-        print("等待网络操作...")
-        //等待http执行结束
-        while(!HttpUtil.doneHttp){
-//            print("...")
-        }
-    print("网络操作完成.")
-        HttpUtil.doneHttp = false //还原标志位
-//    HttpUtil.httpResult = "HttpUtil.httpResult"
-        return HttpUtil.httpResult
-    }
-    
-    
-    
-    //在服务器端设置标志位，然后根据标志位移除无关信息
-    func parseResult(xmlStr:String)->String{
-        var res2 = xmlStr.components(separatedBy: "FLAG")
-        let result = res2.indices.count>1 ? res2[1]:"done"
-        return result
-    }
-    
-    /*  创建Post请求 */
-    func PostRequest(data:String,str1:String)
-    {
-        //(1）设置请求路径
-        let url:NSURL = NSURL(string:"http://129.204.12.94:8080/helloservice/services/HelloService?name=hujinyu")!//不需要传递参数
-        //(2) 创建请求对象
-        let request:NSMutableURLRequest = NSMutableURLRequest(url: url as URL) //默认为get请求
-        //        request.Headers.Add( "SOAPAction", "say" );
-        //        request.addValue("SOAPAction", "say" )
-        request.timeoutInterval = 5.0 //设置请求超时为5秒
-        request.httpMethod = "POST"  //设置请求方法
-        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
-        //设置请求体
-        
-        //把拼接后的字符串转换为data，设置请求体
-        print(data)
-        request.httpBody = data.data(using: .utf8)
-        let session = URLSession.shared
-        //(3) 发送请求
-        let task = session.dataTask(with: request as URLRequest, completionHandler: { (data, response, error) -> Void in
-            print("what is this")
-            
-            var dict:NSDictionary? = nil
-            do {
-                dict  = try JSONSerialization.jsonObject(with: data!, options: JSONSerialization.ReadingOptions.init(rawValue: 0)) as? NSDictionary
-            } catch {
-                
-            }
-            print("dict is \(dict)")
-            
-        })
-        task.resume()
-    }
-    
     
 }
 
