@@ -7,9 +7,10 @@
 //
 
 import UIKit
+import CoreData
 
 class pwdViewController: UIViewController {
-
+    
     @IBOutlet weak var pwd: UITextField!
     @IBOutlet weak var ensurePwd: UITextField!
     @IBOutlet weak var ensureBtn: UIButton!
@@ -17,14 +18,14 @@ class pwdViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         initUI()
         // Do any additional setup after loading the view.
     }
     
-    
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     @IBAction func ensure(_ sender: UIButton) {
-       
+        
         
         let pwd1 = pwd.text
         let pwd2 = ensurePwd.text;
@@ -33,8 +34,23 @@ class pwdViewController: UIViewController {
                 let response = HttpUtil().askWebService("setUserPwd", loginViewController.tel!,pwd1!)
                 switch response{
                 case "successSetPwd"://成功设置密码
-                    //同步数据
                     
+                    //保存密码
+                      let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
+                    do {
+                        let userSettings =  UserSettings(context: context)
+                        userSettings.isLogined = true
+                        try context.save()
+                        
+                     try context.fetch(request)[0].isLogined = true
+                    try context.save()
+                        
+                    }catch{
+                        showMsgbox(_message: "保存密码出错---pwdController")
+                    }
+                    //同步数据
+                      
+                      
                     //跳转我的界面
                     backBtn.sendActions(for: .touchUpInside)
                     break
@@ -73,9 +89,9 @@ class pwdViewController: UIViewController {
         gradientLayer.frame = self.view.frame
         self.view.layer.insertSublayer(gradientLayer, at: 0)
         
-       
+        
     }
-
+    
     //显示提示信息
     func showMsgbox(_message: String, _title: String = "提示"){
         
@@ -85,16 +101,4 @@ class pwdViewController: UIViewController {
         self.present(alert, animated: true, completion: nil)
         
     }
-    
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }
