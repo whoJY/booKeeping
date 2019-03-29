@@ -67,11 +67,31 @@ class chooseKindandInputViewController: UIViewController {
     
     //点击确定按钮
     @IBAction func ensureAndCloseView(_ ensureAndCloseBtn: UIButton ){
+     
+        let dateStr = DateUtil().DateToStringYMD(Date())
+        print("判定结果:\(EverydayDetailsViewController.theFirstDateOfthisDay(dateStr))")
+        if (EverydayDetailsViewController.theFirstDateOfthisDay(dateStr)){//如果是第一条数据，要创建新卡片
+            reloadDataOfEVC()
+        }
+
         //保存数据
         saveNewItemsToCoreData()
         //置添加标志位为true
         EverydayDetailsViewController.added = true
         
+    }
+    
+    func reloadDataOfEVC(){
+        EverydayDetailsViewController.everydayTotalArr = [UIView]()
+        EverydayDetailsViewController.eachdayBaseViewArr = [UIView]()
+        EverydayDetailsViewController.tableViewArr = [UITableView]()
+        EverydayDetailsViewController.lastTableView = UITableView()
+        EverydayDetailsViewController.lastViewHeight = 0
+        EverydayDetailsViewController.totalHeight = 0
+        EverydayDetailsViewController.staticCellID = [String]()
+        EverydayDetailsViewController.loadPos = 0
+        //设置标志位，代表重载
+        meViewController.loadFlag = 1
     }
     
     //初始化种类图标
