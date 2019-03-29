@@ -348,6 +348,9 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
                 deleteOneDetail(detail: EverydayDetailsViewController.everydayDetails[pos])
                 //从数组中删除
                 EverydayDetailsViewController.everydayDetails.remove(at: pos)
+                //将id从数组中移除
+                EverydayDetailsViewController.staticCellID.remove(at: tagOrigin)
+
                 //刷新cell数据源
                 loadItems()
                 //刷新groups数组
