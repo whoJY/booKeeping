@@ -433,15 +433,18 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
             createActivityIndicator()
             activityIndicator?.startAnimating()
             //添加按钮和搜索框不隐藏
-            scroll.subviews.forEach({  if (!(($0 is UISearchBar) || ($0.tag == -9999))  ){
+            scroll.subviews.forEach({  if (!($0 is UISearchBar)){
                 $0.isHidden = true
                 }})
+            //加号按钮悬浮
+            scroll.bringSubviewToFront(addThingsView)
+            addThingsView.isHidden = false
             loadData()
             self.scroll.layoutIfNeeded()
         }
         meViewController.loadFlag = -1
     }
-
+    
     
     //从添加数据页面返回重新加载
     @IBAction func back(segue: UIStoryboardSegue) {
@@ -532,8 +535,6 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         setData()
         //定时刷新设置的时间
         Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(EverydayDetailsViewController.setData), userInfo: nil, repeats: true)
-        addThingsView.tag = -9999
-        
     }
     //载入数据
     public func loadData(){
@@ -604,7 +605,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         searchBar.frame = CGRect.init(x: 0, y: 0, width: 414, height: 56)
         scroll.addSubview(searchBar)
         //动画提示搜索框的存在
-        UIView.animate(withDuration: 1.8, animations: {
+        UIView.animate(withDuration: 0.8, animations: {
             self.scroll.setContentOffset(CGPoint(x:0,y:56), animated: false)
         })
         searchBar.placeholder = "搜索"
@@ -615,8 +616,9 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     //以下全是search bar delegate
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        print("searchBarSearchButtonClicked")
         searching = true //置搜索标志位为true
+        //收起键盘
+        searchBar.resignFirstResponder()
         let keyword = searchBar.text
         if (keyword != nil){
             //呈现搜索结果
@@ -660,10 +662,17 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        //收起键盘
+        searchBar.resignFirstResponder()
         activityIndicator?.stopAnimating()
         searching = false //置搜索标志位为false
         readyToReloadData()
-        scroll.subviews.forEach({ $0.isHidden = true })
+        scroll.subviews.forEach({
+            $0.isHidden = true
+            
+        })
+        scroll.bringSubviewToFront(addThingsView)
+        addThingsView.isHidden = false
         //重载数据
         loadData()
     }
