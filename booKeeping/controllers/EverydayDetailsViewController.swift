@@ -9,8 +9,10 @@
 import UIKit
 import CoreData
 
-class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource,UISearchBarDelegate {
     
+    
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     var  tempDetailsData = EverydayDetails()
     public static var everydayDetails = [EverydayDetails]()
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("details.plist")
@@ -57,7 +59,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     //存入每天的table view  cell id
     static var staticCellID = [String]()
     //上一天视图的高度
-    static var lastViewHeight = 0
+    static var lastViewHeight = 300
     //数据分组
     var groups  = [[String]]()
     //用来记录加载到哪一位了
@@ -81,7 +83,6 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     public static var timer : Timer?//计时器
     
     static var added = false;//记录是否添加了新的一天的数据
-    static var everydayTotalYArr = [Int]()
     static var finished3Count = 0
     static var hasUpdatedGetAndPutLabel = false
     static var lastIndexpath :IndexPath? = nil
@@ -105,13 +106,14 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
             EverydayDetailsViewController.totalHeight += Double(EverydayDetailsViewController.lastViewHeight)  //计算卡片的起始位置
             EverydayDetailsViewController.lastViewHeight = (everyTotalHeight) //记录上一张卡片高度
             beginY = Int(EverydayDetailsViewController.totalHeight)
+            //56px以上是搜索框
+            beginY += 56
         }
         
         //每天的总视图
         let everyTotalCopy = UIView()
         everyTotalCopy.frame = CGRect.init(x: 0, y: beginY, width: 414, height: everyTotalHeight)
         
-        EverydayDetailsViewController.everydayTotalYArr.append(Int(EverydayDetailsViewController.totalHeight))
         
         EverydayDetailsViewController.lastEverydayTotalHeight = everyTotalHeight
         //设置日期标签
@@ -352,7 +354,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
                 EverydayDetailsViewController.staticCellID.remove(at: tagOrigin)
 
                 //刷新cell数据源
-                loadItems()
+                loadDataSource()
                 //刷新groups数组
                 groups = sortItemByDate(EverydayDetailsViewController.everydayDetails)
                 //在此视图之上的视图不动，之下的视图上移,此视图隐藏
@@ -365,7 +367,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
                 //从数组中删除
                 EverydayDetailsViewController.everydayDetails.remove(at: pos)
                 //刷新cell数据源
-                loadItems()
+                loadDataSource()
                 //刷新groups数组
                 groups = sortItemByDate(EverydayDetailsViewController.everydayDetails)
                 
@@ -427,10 +429,8 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         if (meViewController.loadFlag == 1){
             scroll.subviews.forEach({ $0.isHidden = true })
             loadData()
-            print("view will appear1")
             //使加号按钮始终悬浮
             scroll.bringSubviewToFront(addThingsView)
-            addThingsView.isHidden = false
             self.addThingsBtn.layoutIfNeeded()
             self.scroll.layoutIfNeeded()
         }
@@ -444,7 +444,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
             EverydayDetailsViewController.hasUpdatedGetAndPutLabel = false//置更新标志位
             let oldCount  = groups.count//旧的数据组 条数
             //刷新数据源
-            loadItems()
+            loadDataSource()
             groups = sortItemByDate(EverydayDetailsViewController.everydayDetails)
             //更新groupsCopy
             groupsCopy = groups
@@ -470,25 +470,11 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         }
     }
 
-    //将view后移一位，将最后一位放在第一位
-    func viewMove1Pos(_ viewArr:[UIView])->[UIView]{
-        var res = viewArr
-        let temp = res[res.count - 1]
-        res.append(UIView())
-        for i in (0...res.count-2).reversed(){
-            res[i+1] = res[i]
-            
-        }
-        res[0] = temp
-        return res
-    }
-    
-    static var addInTheSameDayTimes = 0
     //在已有数据table view上添加新数据
     func addInTheSameDay(){
         
         //刷新数据源
-        loadItems()
+        loadDataSource()
         groups = sortItemByDate(EverydayDetailsViewController.everydayDetails)
         //样例视图刷新数据
         //        eachDayTableView.reloadData()
@@ -504,19 +490,18 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         EverydayDetailsViewController.everydayTotalArr[0].frame.size.height += 40
         //添加的那一天高度增加
         EverydayDetailsViewController.lastTableView!.frame.size.height += 40
-        //更新最新一行，勿删
+        //刷新最新一行
         EverydayDetailsViewController.lastTableView?.reloadRows(at: [EverydayDetailsViewController.lastIndexpath!], with: .none)
-            //其他所有视图往下移
+        //其他所有视图往下移
         viewMoveDown(EverydayDetailsViewController.everydayTotalArr,44,includeFirstView: false, defaultStartIndex: 1) //用旧的数组，最后一位不移动（）
-        print("a执行了")
         //还原添加标志位
         EverydayDetailsViewController.added  =  false
-        EverydayDetailsViewController.addInTheSameDayTimes += 1
+
         
     }
     
     //判断是不是某天的第一条数据，(要不要创建一张新卡片)
-   static func theFirstDateOfthisDay(_ dateStr:String)->Bool{
+    static func theFirstDateOfthisDay(_ dateStr:String)->Bool{
         for i in EverydayDetailsViewController.staticCellID{
             if (i == dateStr){
                 return false
@@ -525,24 +510,9 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         return true
     }
     
-    
-    //设置view风格
-    func setViewRoundAndShadow(view : UIView){
-        //为轮廓添加阴影和圆角
-        view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
-        view.layer.shadowOffset = CGSize.init()//(0,0)时是四周都有阴影
-        view.layer.shadowColor = #colorLiteral(red: 0.4756349325, green: 0.4756467342, blue: 0.4756404161, alpha: 1);
-        view.layer.shadowOpacity = 0.8;
-        view.layer.shadowRadius = 5
-        view.layer.cornerRadius = 15
-        view.layer.masksToBounds = false
-        view.layer.borderColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
-        view.layer.borderWidth = 0.25//设置边框线条粗细
-        
-    }
-    
     //初始化ui
     func initUI(){
+        
         //隐藏样例视图
         everydayTotal.isHidden = true
         //        eachDayTableView.delegate = self
@@ -560,7 +530,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     }
     //载入数据
     public func loadData(){
-        loadItems()
+        loadDataSource()
         //定时加载数据
         EverydayDetailsViewController.timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(EverydayDetailsViewController.loadEveryday), userInfo: nil, repeats: true)
         print("开始加载数据")
@@ -577,6 +547,8 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         if EverydayDetailsViewController.timer != nil {
             EverydayDetailsViewController.timer!.invalidate() //销毁timer
             EverydayDetailsViewController.timer = nil
+            
+            
         }
     }
     
@@ -603,12 +575,85 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
             //加载完成，销毁计时器
             print("加载完成，销毁计时器")
             stopTimer()
+            if (!searching){//如果没有正在搜索
+            //加载搜索框
+           loadSearchBar()
+            }
         }
     }
     
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    var searching = false
+    
+    //加载搜索框到scroll view
+    func loadSearchBar(){
+        let searchBar : UISearchBar = UISearchBar()
+        searchBar.frame = CGRect.init(x: 0, y: 0, width: 414, height: 56)
+        scroll.addSubview(searchBar)
+        //动画提示搜索框的存在
+        UIView.animate(withDuration: 1.8, animations: {
+            self.scroll.setContentOffset(CGPoint(x:0,y:56), animated: false)
+        })
+        searchBar.placeholder = "搜索"
+        searchBar.delegate = self
+        
+    }
+    
+    //以下全是search bar delegate
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        print("searchBarSearchButtonClicked")
+        searching = true //置搜索标志位为true
+        let keyword = searchBar.text
+        if (keyword != nil){
+         //呈现搜索结果
+            let request: NSFetchRequest<EverydayDetails> = EverydayDetails.fetchRequest()
+            let predicate  = NSPredicate(format: "name CONTAINS[c] %@", keyword!)
+            request.predicate = predicate
+            //按照日期增量排序
+            let sortDescriptor = NSSortDescriptor(key: "date", ascending: true)
+            request.sortDescriptors = [sortDescriptor]
+            do {
+             let searchResEverydayDetails = try context.fetch(request)
+                readyToReloadData()
+                //搜索栏不隐藏
+                scroll.subviews.forEach({
+                    if (!($0 is UISearchBar)){
+                    $0.isHidden = true
+                    
+                    }
+                })
+                //替换数据源
+                EverydayDetailsViewController.everydayDetails = searchResEverydayDetails
+                EverydayDetailsViewController.timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(EverydayDetailsViewController.loadEveryday), userInfo: nil, repeats: true)
+                print("开始加载数据")
+                //使加号按钮始终悬浮
+                scroll.bringSubviewToFront(addThingsView)
+                self.addThingsBtn.layoutIfNeeded()
+                self.scroll.layoutIfNeeded()
+                
+            }catch{
+                
+            }
+            
+        }
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searching = false //置搜索标志位为false
+        readyToReloadData()
+        scroll.subviews.forEach({ $0.isHidden = true })
+        //重载数据
+        loadData()
+    }
+    
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        searchBar.showsCancelButton = true
+        (searchBar.value(forKey: "cancelButton") as! UIButton).setTitle("取消", for: .normal)
+        
+    }
+    
     //载入数据
-    func loadItems(){
+    func loadDataSource(){
         
         let request: NSFetchRequest<EverydayDetails> = EverydayDetails.fetchRequest()
         do {
@@ -624,7 +669,8 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         }
     }
     
-    func reloadDataOfEVC(){
+    //清除所有缓存
+    func readyToReloadData(){
         EverydayDetailsViewController.everydayTotalArr = [UIView]()
         EverydayDetailsViewController.eachdayBaseViewArr = [UIView]()
         EverydayDetailsViewController.tableViewArr = [UITableView]()
@@ -682,6 +728,20 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         return false
     }
     
+    //设置view风格
+    func setViewRoundAndShadow(view : UIView){
+        //为轮廓添加阴影和圆角
+        view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+        view.layer.shadowOffset = CGSize.init()//(0,0)时是四周都有阴影
+        view.layer.shadowColor = #colorLiteral(red: 0.4756349325, green: 0.4756467342, blue: 0.4756404161, alpha: 1);
+        view.layer.shadowOpacity = 0.8;
+        view.layer.shadowRadius = 5
+        view.layer.cornerRadius = 15
+        view.layer.masksToBounds = false
+        view.layer.borderColor = #colorLiteral(red: 0, green: 0, blue: 0, alpha: 1)
+        view.layer.borderWidth = 0.25//设置边框线条粗细
+        
+    }
 }
 
 //设置uilabel样式
