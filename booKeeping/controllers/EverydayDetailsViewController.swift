@@ -41,6 +41,8 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     @IBOutlet weak var ScrollViewBottomValue: NSLayoutConstraint!
     @IBOutlet weak var EverydayTotalHeight:NSLayoutConstraint!
     
+    //loading图标
+     var activityIndicator:UIActivityIndicatorView? = nil
     
     @IBAction func jump(_ addThingsBtn: UIButton){
         //NSCoder方法
@@ -86,7 +88,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     static var finished3Count = 0
     static var hasUpdatedGetAndPutLabel = false
     static var lastIndexpath :IndexPath? = nil
-    static var neverAddNewDay = true //因有没有添加新的一天对操作有影响，故在此设立标志位
+
     
     static var deletedViewsTag : [Int] = []
     static var operateDelete = false
@@ -226,7 +228,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
                 return 0
             }else{
                 
-                print("在返回行数方法这里，groupsCopy[pos] 是\(groupsCopy[pos])")
+//                print("在返回行数方法这里，groupsCopy[pos] 是\(groupsCopy[pos])")
                 //首先判断是在添加操作还是删除操作
                 if (EverydayDetailsViewController.operateDelete){//如果是在进行删除操作
                     print("B2返回了\(groupsCopy[pos].count-1),groupsCopy[pos] is \(groupsCopy[pos])")
@@ -317,7 +319,6 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
             var tag = tableView.tag
             let tagOrigin = tag
             var  offset = 0
-            //            if (EverydayDetailsViewController.neverAddNewDay){//如果没有添加新的一天
             offset = findMinusOffset(tagOrigin, EverydayDetailsViewController.deletedViewsTag)
             
             print("tagOrigin is [\(tagOrigin)],groupsCopy[tagOrigin] is \(groupsCopy[tagOrigin])")
@@ -427,6 +428,9 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     
     override func viewWillAppear(_ animated: Bool) {
         if (meViewController.loadFlag == 1){
+             createActivityIndicator()
+            //动画提示
+            activityIndicator?.startAnimating()
             scroll.subviews.forEach({ $0.isHidden = true })
             loadData()
             //使加号按钮始终悬浮
@@ -440,6 +444,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     //从添加数据页面返回重新加载
     @IBAction func back(segue: UIStoryboardSegue) {
         EverydayDetailsViewController.operateDelete = false  //置删除标志位
+        searching = false //置搜索标志位
         if (EverydayDetailsViewController.added ){//如果添加了数据
             EverydayDetailsViewController.hasUpdatedGetAndPutLabel = false//置更新标志位
             let oldCount  = groups.count//旧的数据组 条数
@@ -574,6 +579,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         }else{
             //加载完成，销毁计时器
             print("加载完成，销毁计时器")
+            activityIndicator?.stopAnimating()
             stopTimer()
             if (!searching){//如果没有正在搜索
             //加载搜索框
@@ -583,6 +589,12 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     }
     
     var searching = false
+    
+    func createActivityIndicator(){
+        activityIndicator = UIActivityIndicatorView(style: .gray)
+        activityIndicator?.frame = CGRect.init(x: 207, y: 300, width: 15, height: 15)
+        scroll.addSubview(activityIndicator!)
+    }
     
     //加载搜索框到scroll view
     func loadSearchBar(){
@@ -614,23 +626,36 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
             request.sortDescriptors = [sortDescriptor]
             do {
              let searchResEverydayDetails = try context.fetch(request)
-                readyToReloadData()
                 //搜索栏不隐藏
                 scroll.subviews.forEach({
                     if (!($0 is UISearchBar)){
-                    $0.isHidden = true
-                    
+                        $0.isHidden = true
+                        
                     }
                 })
+                if (searchResEverydayDetails != []){ //不为空加载
+                readyToReloadData()
+                //创建loading图标
+                createActivityIndicator()
+                activityIndicator?.startAnimating()
                 //替换数据源
                 EverydayDetailsViewController.everydayDetails = searchResEverydayDetails
                 EverydayDetailsViewController.timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(EverydayDetailsViewController.loadEveryday), userInfo: nil, repeats: true)
                 print("开始加载数据")
                 //使加号按钮始终悬浮
                 scroll.bringSubviewToFront(addThingsView)
+                
                 self.addThingsBtn.layoutIfNeeded()
                 self.scroll.layoutIfNeeded()
                 
+                }else{//搜索结果为空提示
+                    activityIndicator?.stopAnimating()
+                    let tipsLabel = UILabel()
+                    tipsLabel.frame = CGRect.init(x: 150, y: 200, width: 200, height: 100)
+                    tipsLabel.text = "没有搜索结果"
+                    scroll.addSubview(tipsLabel)
+                    
+                }
             }catch{
                 
             }
@@ -639,6 +664,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        activityIndicator?.stopAnimating()
         searching = false //置搜索标志位为false
         readyToReloadData()
         scroll.subviews.forEach({ $0.isHidden = true })
