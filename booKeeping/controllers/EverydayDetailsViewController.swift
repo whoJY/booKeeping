@@ -582,8 +582,10 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         }else{
             //加载完成，销毁计时器
             print("加载完成，销毁计时器")
+             stopTimer()
+            EverydayDetailsViewController.groupsCount  = groups.count
             activityIndicator?.stopAnimating()
-            stopTimer()
+           
             if (!searching){//如果没有正在搜索
                 //加载搜索框
                 loadSearchBar()
@@ -591,6 +593,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         }
     }
     
+    static var groupsCount = 0 //统计组数
     var searching = false
     
     func createActivityIndicator(){
@@ -605,9 +608,8 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         searchBar.frame = CGRect.init(x: 0, y: 0, width: 414, height: 56)
         scroll.addSubview(searchBar)
         //动画提示搜索框的存在
-        UIView.animate(withDuration: 0.8, animations: {
             self.scroll.setContentOffset(CGPoint(x:0,y:56), animated: false)
-        })
+        
         searchBar.placeholder = "搜索"
         searchBar.delegate = self
         
