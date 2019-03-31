@@ -9,6 +9,7 @@
 import UIKit
 import LocalAuthentication
 import CoreData
+import SwiftyJSON
 
 class meViewController: UIViewController, UITableViewDelegate, UITableViewDataSource,UIImagePickerControllerDelegate,
 UINavigationControllerDelegate {
@@ -25,6 +26,11 @@ UINavigationControllerDelegate {
     @IBOutlet weak var testBtn4: UIButton!
     
     @IBOutlet weak var testImg: UIImageView!
+    
+    @IBOutlet weak var allDays: UILabel! //记账总天数
+    @IBOutlet weak var allCounts: UILabel! //记账总笔数
+    
+    
     
     var menu =  [ ["定时提醒","导出数据","解锁密码","","帮助","关于"],["alarm.png","share.png","touchID.png","","help.png","about.png"] ]
     
@@ -60,9 +66,7 @@ UINavigationControllerDelegate {
             lockSwitch.addTarget(self, action: #selector(switchDidChange(_:)), for: .valueChanged)
             cell.addSubview(lockSwitch)
             //如果用户已经设置上锁，设置开关打开，否则关闭
-//            lockSwitch.isOn = locked()
-           
-            
+            lockSwitch.isOn = locked()
         }
         return cell
     }
@@ -154,17 +158,17 @@ UINavigationControllerDelegate {
         self.meMenuTableView.tableFooterView = UIView()
         initPortrait()
         initUI()
-        testBtn1.isHidden = true
-        testBtn2.isHidden = true
-        testBtn3.isHidden = true
-        testBtn4.isHidden = true
-        testImg.isHidden = true
+       
         
     }
     
     
     //初始化ui
     public func initUI(){
+       
+        allDays.text = String(EverydayDetailsViewController.groupsCount)
+        allCounts.text = String(EverydayDetailsViewController.everydayDetails.count)
+        
         let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
         do {
             let userSetting = try self.context.fetch(request)
@@ -173,11 +177,17 @@ UINavigationControllerDelegate {
                 portrait.image = UIImage(named: "head portrait.jpg")
             }else{
                 let portraitPath = userSetting[0].portraitPath
-                portrait.image = getSavedImage(named: portraitPath ?? "pickedimage.jpg")
+                print("取出头像")
+                if (portraitPath == ""){
+                    print(1)
+                    portrait.image = UIImage(named: "uu.png")
+                }else{
+                    print(2)
+                     portrait.image = getSavedImage(named: portraitPath ?? "portrait.jpg")
+                }
+                
+               
             }
-            
-
-            
         }catch{
             
         }
@@ -186,7 +196,15 @@ UINavigationControllerDelegate {
     
     @IBAction func back(segue: UIStoryboardSegue) {
         
+        //刷新ui
+        initUI()
         
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        //刷新记账天数和记账笔数
+        allDays.text = String(EverydayDetailsViewController.groupsCount)
+        allCounts.text = String(EverydayDetailsViewController.everydayDetails.count)
     }
     
     
@@ -194,12 +212,8 @@ UINavigationControllerDelegate {
     
     
     @IBAction func gotoLogin(_ sender: UIButton) {
-        let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
-        var logged : Bool
-        do {
-            logged = try self.context.fetch(request)[0].isLogined
-            let test = try self.context.fetch(request)
-            print(test)
+        var logged : Bool = false
+            logged = getUsersettings().isLogined
             if (logged){//如果已经登录
                 
                 let alertC = UIAlertController(title: "选择操作", message: nil, preferredStyle: .actionSheet)
@@ -212,19 +226,32 @@ UINavigationControllerDelegate {
                 //相机
                 let action2 = UIAlertAction(title: "相机", style: .default) { (_) in
                     //打开相机
+                    self.openCamera()
                     
                 }
                 
-                let action3 = UIAlertAction(title: "退出登录", style: .default) { (_) in
+                //相机
+                let action3 = UIAlertAction(title: "修改密码", style: .default) { (_) in
+                    //跳转设置密码界面
+                    
+                    let vc = self.storyboard?.instantiateViewController(withIdentifier: String(describing: type(of: pwdViewController())))
+                        as! pwdViewController
+                    if (vc.isKind(of: pwdViewController.self)){
+                        self.present(vc, animated: true, completion: nil)
+                        
+                    }
+                }
+                let action4 = UIAlertAction(title: "退出登录", style: .default) { (_) in
                     //退出登录，清除数据
-                    
+                    self.logOut()
                 }
                 
-                let action4 = UIAlertAction(title: "取消", style: .cancel, handler: nil)
+                let action5 = UIAlertAction(title: "取消", style: .cancel, handler: nil)
                 alertC.addAction(action1)
                 alertC.addAction(action2)
                 alertC.addAction(action3)
                 alertC.addAction(action4)
+                alertC.addAction(action5)
                 self.present(alertC, animated: true, completion: nil)
                 
             }else{//如果没有登录,跳转登录界面
@@ -234,13 +261,30 @@ UINavigationControllerDelegate {
                     self.present(vc, animated: true, completion: nil)
                 }
             }
-            
-        }catch{
-            print("登录服务出现问题~")
-        }
+   
         
        
         
+    }
+    
+    
+    //退出登录
+    func logOut(){
+        //清除所有数据
+        let alarmTime = ""
+        let budget = 0.0
+        let isLogined = false
+        let portraitPath = ""
+        let touchIDLocked = false
+        let userID = ""
+        setUserSetting(isLogined: isLogined, touchIDLocked: touchIDLocked, budget: budget, portraitPath: portraitPath, userID: userID, alarmTime: alarmTime)
+        print("已删除全部设置")
+
+        reloadDataOfEVC()
+        //刷新界面
+        meMenuTableView.reloadData()
+        initUI()
+        portrait.image = UIImage(named:"unknown_user.png")
     }
     
     
@@ -256,21 +300,17 @@ UINavigationControllerDelegate {
         portrait.image = pickedImage
         
         //将选择的图片保存到Document目录下
-        if ( saveImage(image: pickedImage, name: "portrait.jpg") ){
-            
+        if (ImgUtil().saveImage(image: pickedImage, name: "portrait.jpg") ){
             do {
-                 let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
-                 try self.context.fetch(request)[0].portraitPath = "portrait.jpg"
-                 try context.save()
-                //将图片上传到服务器(去除个人id即电话号码)
+                let oldSettings = getUsersettings()
+                oldSettings.portraitPath = "portrait.jpg"
+                setUserSetting(isLogined: oldSettings.isLogined, touchIDLocked: oldSettings.touchIDLocked, budget: oldSettings.budget, portraitPath: oldSettings.portraitPath!, userID: oldSettings.userID!, alarmTime: oldSettings.alarmTime!)
+                //将图片上传到服务器(取出个人id即电话号码)
                 let id = try self.context.fetch(request)[0].userID ?? "unknown id"
                 let imgBase64 = ImgUtil().convertImageToBase64(image: pickedImage)
                 DispatchQueue.global().async {//多线程上传图片
                     HttpUtil().askWebService("uploadImg", id, imgBase64)
-                }
-                
-                
-                
+                }  
             }catch{
                 print("图片路径存储失败")
             }
@@ -315,32 +355,69 @@ UINavigationControllerDelegate {
     var testImage:UIImage? = nil
     var temp : String? = nil
     
-    @IBAction func test(_ sender: UIButton) {
-        temp = ImgUtil().convertImageToBase64(image: testImage!)
-        
-        
-    }
+   
     @IBOutlet weak var image2: UIImageView!
     
     @IBAction func test2(_ sender: UIButton) {
-     image2.image =  ImgUtil.convertBase64ToImage(imageString: temp!)
+        var jsonStr = HttpUtil().askWebService("downloadDetails", "", "")
+//         let jsonData = JSON.init(jsonStr as Any)
+         jsonStr = jsonStr.replacingOccurrences(of: "&quot;", with: "\"")
+      
+         var cons = [Consumption]()
+        cons = JsonUtil().parseJsonByhand(jsonStr)
+        //删除所有旧数据
+        DetailsDao().deleteAll()
+        //插入新数据
+        for i in cons{
+            DetailsDao().saveDao(i.name, i.price, DateUtil().StringToDateYMDHMS(i.date), i.kind, "clothes.png")
+        }
+        //重载数据
+        reloadDataOfEVC()
     }
     
     
+    func reloadDataOfEVC(){
+        EverydayDetailsViewController.everydayTotalArr = [UIView]()
+        EverydayDetailsViewController.eachdayBaseViewArr = [UIView]()
+        EverydayDetailsViewController.tableViewArr = [UITableView]()
+        EverydayDetailsViewController.lastTableView = UITableView()
+        EverydayDetailsViewController.lastViewHeight = 0
+        EverydayDetailsViewController.totalHeight = 0
+        EverydayDetailsViewController.staticCellID = [String]()
+        EverydayDetailsViewController.loadPos = 0
+        EverydayDetailsViewController.groupsCount = 0
+        //设置标志位，代表重载
+        meViewController.loadFlag = 1
+    }
+    
+    
+    
+    static var loadFlag = -1
+    //变成下载图片了
     @IBAction func uploadImg(_ sender: UIButton) {
-//        print("数据:")
-//        print(temp!)
-        HttpUtil().askWebService("uploadImg","18873219857", temp!)
-        
-//        HttpUtil().testHtpp(str: "hello")
+
+     let base64Str = HttpUtil().askWebService("downloadImg","unknown id","")
+      
+        if(base64Str.contains("ERROR")){//如果网络请求失败
+            showMsgbox(_message: base64Str) //提示错误信息
+        }else{
+     image2.image =  ImgUtil.convertBase64ToImage(imageString: base64Str)
+        }
+
     }
     
+    @IBAction func test(_ sender: UIButton) {
+                       chooseKindandInputViewController().createRealDate()
+   reloadDataOfEVC()
 
+    }
+    
     @IBAction func uploadDate(_ sender: UIButton) {
     
     let consArr = transUtil(EverydayDetailsViewController.everydayDetails)
     let jsonStr = JsonUtil().convertArrToJsonStr(consArr)
-        HttpUtil().askWebService("uploadConsumption", jsonStr, "")
+    let res = HttpUtil().askWebService("uploadConsumption", jsonStr, "")
+    print(res)
     }
     
     
@@ -353,9 +430,7 @@ UINavigationControllerDelegate {
             }
         return res
     }
-    
-    
-    
+
     //获取存储的照片
     func getSavedImage(named: String) -> UIImage? {
         if let dir = try? FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false) {
@@ -364,27 +439,106 @@ UINavigationControllerDelegate {
         return nil
     }
     
-    //存储照片
-    func saveImage(image: UIImage,name:String) -> Bool {
-        let fileManager = FileManager.default
-        let rootPath = NSSearchPathForDirectoriesInDomains(.documentDirectory,
-                                                           .userDomainMask, true)[0] as String
-        let filePath = "\(rootPath)/"+name
-        let imageData = image.jpegData(compressionQuality: 1.0)
-        fileManager.createFile(atPath: filePath, contents: imageData, attributes: nil)
-        return true
+    
+    func openCamera(){
+        
+        if UIImagePickerController.isSourceTypeAvailable(.camera){
+            //创建图片控制器
+            
+            let picker = UIImagePickerController()
+            
+            //设置代理
+            
+            picker.delegate = self
+            
+            //设置来源
+            
+            picker.sourceType = UIImagePickerController.SourceType.camera
+            
+            //允许编辑
+            
+            picker.allowsEditing = true
+            
+            //打开相机
+            
+            self.present(picker, animated:true, completion: { () -> Void in
+            })
+            
+        }else{
+            
+            debugPrint("找不到相机")
+            
+        }
+        
     }
+   
+    
+    let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
     
     //验证用户是否设置锁
     func locked()->Bool{
-        var  locked = false;
-        do {
-            let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
-            locked = try self.context.fetch(request)[0].touchIDLocked
+        return getUsersettings().touchIDLocked
+    }
+    
+    //获取设置信息
+    func getUsersettings()->UserSettings{
+        var res: UserSettings = UserSettings()
+        do{
+            let  userSetting = try context.fetch(request)
+            if (userSetting.count != 0 ){
+                res = userSetting[0]
+            }else{
+                let newSetting = UserSettings(context: context)
+                newSetting.alarmTime = ""
+                newSetting.budget = 0.0
+                newSetting.isLogined = false
+                newSetting.portraitPath = ""
+                newSetting.touchIDLocked = false
+                newSetting.userID = "unknown id"
+                try context.save()
+                res = newSetting
+            }
         }catch{
-            print("无法获取是否上锁")
+            print("无法获取设置信息")
         }
-        return locked
+        return res
+    }
+    
+    //保存新的设置
+    func setUserSetting(isLogined:Bool,touchIDLocked:Bool,budget:Double,portraitPath:String,userID:String,alarmTime:String){
+        do {
+            var  userSetting = try context.fetch(request)
+            if (userSetting.count != 0){
+                userSetting[0].isLogined = isLogined
+                userSetting[0].touchIDLocked = touchIDLocked
+                userSetting[0].budget = budget
+                userSetting[0].portraitPath = portraitPath
+                userSetting[0].userID = userID
+                userSetting[0].alarmTime = alarmTime
+                try context.save()
+            }else{
+                let createSettings = UserSettings(context: context)
+                createSettings.isLogined = isLogined
+                createSettings.touchIDLocked = touchIDLocked
+                createSettings.budget = budget
+                createSettings.portraitPath = portraitPath
+                createSettings.userID = userID
+                createSettings.alarmTime = alarmTime
+                try context.save()
+            }
+        }catch{
+            print("保存新的设置信息出错")
+        }
+    }
+    
+    
+    //显示提示信息
+    func showMsgbox(_message: String, _title: String = "提示"){
+        let alert = UIAlertController(title: _title, message: _message, preferredStyle: UIAlertController.Style.alert)
+        let btnOK = UIAlertAction(title: "好的", style: .default, handler: nil)
+        alert.addAction(btnOK)
+        self.present(alert, animated: true, completion: nil)
+        
     }
     
 }
