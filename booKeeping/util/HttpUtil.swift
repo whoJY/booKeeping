@@ -56,6 +56,11 @@ class HttpUtil{
     let downloadJsonSoapMsg1 = "<downloadDetails xmlns=\"http://tempuri.org/\">" + "<tel>"
     let downloadJsonSoapMsg2 = "</tel>" + "</downloadDetails>"
     
+    //汇率换算json
+    let exchangeRateSoapMsg1 = "<getCurrency xmlns=\"http://tempuri.org/\">" + "<scur>"
+    let exchangeRateSoapMsg2 = "</scur>" +  "<tcur>"
+    let exchangeRateSoapMsg3 = "</tcur>" + "</getCurrency>"
+    
     //测试服务url
     let url = "http://129.204.12.94:8080/helloservice/services/HelloService"
     //发送短信服务url
@@ -68,6 +73,8 @@ class HttpUtil{
     let imgUrl2 = "http://129.204.12.94:8080/bookeepingWebService/services/Download"
     //上传json数据url
     let jsonUrl = "http://129.204.12.94:8080/bookeepingWebService/services/objectUpload"
+    //
+    let exchangeRatejsonUrl = "http://129.204.12.94:8080/bookeepingWebService/services/ExchangeRate"
     
     func askWebService(_ whichService:String,_ para1:String,_ para2_optional:String)->String{
         print("service is \(whichService)")
@@ -93,6 +100,9 @@ class HttpUtil{
         case "downloadDetails": //下载json
             let soapMsg = soapHead+downloadJsonSoapMsg1+para1+downloadJsonSoapMsg2+soapEnd
             return HttpPostViaWS(soapMsg, url: imgUrl2)
+        case "exchangeRate":
+            let soapMsg = soapHead+exchangeRateSoapMsg1+para1+exchangeRateSoapMsg2+para2_optional+exchangeRateSoapMsg3+soapEnd
+            return HttpPostViaWS(soapMsg, url: exchangeRatejsonUrl)
         default:
             break
         }
