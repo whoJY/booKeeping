@@ -33,4 +33,18 @@ class ImgUtil {
         return nil
     }
     
+    
+    
+    //存储照片
+    func saveImage(image: UIImage,name:String) -> Bool {
+        let fileManager = FileManager.default
+        let rootPath = NSSearchPathForDirectoriesInDomains(.documentDirectory,
+                                                           .userDomainMask, true)[0] as String
+        let filePath = "\(rootPath)/"+name
+        let imageData = image.jpegData(compressionQuality: 1.0)
+        fileManager.createFile(atPath: filePath, contents: imageData, attributes: nil)
+        return true
+    }
+    
+    
 }

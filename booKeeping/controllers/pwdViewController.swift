@@ -16,6 +16,8 @@ class pwdViewController: UIViewController {
     @IBOutlet weak var ensureBtn: UIButton!
     @IBOutlet weak var backBtn: UIButton!
     
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -23,7 +25,7 @@ class pwdViewController: UIViewController {
         // Do any additional setup after loading the view.
     }
     
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
     @IBAction func ensure(_ sender: UIButton) {
         
         
@@ -31,26 +33,32 @@ class pwdViewController: UIViewController {
         let pwd2 = ensurePwd.text;
         if (pwd1 != nil && pwd2 != nil){
             if (pwd1 == pwd2){
-                let response = HttpUtil().askWebService("setUserPwd", loginViewController.tel!,pwd1!)
+                //从数据库取出tel
+                let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
+                var tel = ""
+                do {
+                    tel =  try self.context.fetch(request)[0].userID!
+                    
+                }catch{
+                    print("保存用户id出错")
+                }
+                
+                let response = HttpUtil().askWebService("setUserPwd", tel,pwd1!)
                 switch response{
                 case "successSetPwd"://成功设置密码
                     
                     //保存密码
-                      let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
+                    let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
                     do {
-                        let userSettings =  UserSettings(context: context)
-                        userSettings.isLogined = true
+                        try context.fetch(request)[0].isLogined = true
                         try context.save()
-                        
-                     try context.fetch(request)[0].isLogined = true
-                    try context.save()
                         
                     }catch{
                         showMsgbox(_message: "保存密码出错---pwdController")
                     }
                     //同步数据
-                      
-                      
+                    
+                    
                     //跳转我的界面
                     backBtn.sendActions(for: .touchUpInside)
                     break

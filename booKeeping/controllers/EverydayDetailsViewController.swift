@@ -539,10 +539,16 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     //载入数据
     public func loadData(){
         loadDataSource()
+        if (EverydayDetailsViewController.everydayDetails.count != 0){ //数据不为空加载
+        print("有数据")
+            print(EverydayDetailsViewController.everydayDetails)
         //定时加载数据
         EverydayDetailsViewController.timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(EverydayDetailsViewController.loadEveryday), userInfo: nil, repeats: true)
         print("开始加载数据")
-        
+        }else{
+            print("没有数据")
+            activityIndicator?.stopAnimating()
+        }
     }
     //打印路径
     func printPath(){
@@ -582,6 +588,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         }else{
             //加载完成，销毁计时器
             print("加载完成，销毁计时器")
+            print("groups[0] is \(groups[0])")
              stopTimer()
             EverydayDetailsViewController.groupsCount  = groups.count
             activityIndicator?.stopAnimating()
@@ -596,6 +603,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     static var groupsCount = 0 //统计组数
     var searching = false
     
+    //加载图标
     func createActivityIndicator(){
         activityIndicator = UIActivityIndicatorView(style: .gray)
         activityIndicator?.frame = CGRect.init(x: 207, y: 300, width: 15, height: 15)
@@ -608,7 +616,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         searchBar.frame = CGRect.init(x: 0, y: 0, width: 414, height: 56)
         scroll.addSubview(searchBar)
         //动画提示搜索框的存在
-            self.scroll.setContentOffset(CGPoint(x:0,y:56), animated: false)
+        self.scroll.setContentOffset(CGPoint(x:0,y:56), animated: false)
         
         searchBar.placeholder = "搜索"
         searchBar.delegate = self
@@ -692,11 +700,11 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         do {
             //获取数据
             let tempEverydayDetails = try context.fetch(request)
-            print("数据总量:\(tempEverydayDetails.count)")
+            if (tempEverydayDetails.count != 0){
             //按日期排序
             EverydayDetailsViewController.everydayDetails = DetailsDao().sortByDate(tempEverydayDetails)
-            print("此处数据总量:\( EverydayDetailsViewController.everydayDetails.count)")
-            //            print("排序后\(EverydayDetailsViewController.everydayDetails )")
+            print("数据总量:\( EverydayDetailsViewController.everydayDetails.count)")
+            }
         }catch{
             print("从context获取数据错误")
         }

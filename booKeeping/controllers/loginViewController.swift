@@ -117,7 +117,7 @@ class loginViewController: UIViewController {
                 jsonStr = jsonStr.replacingOccurrences(of: "&quot;", with: "\"")
                 
                 var cons = [Consumption]()
-                cons = JsonUtil().parseJsonByhand(jsonStr)
+                cons = JsonUtil().parseDetailsJsonByhand(jsonStr)
                 //删除所有旧数据
                 DetailsDao().deleteAll()
                 //插入新数据

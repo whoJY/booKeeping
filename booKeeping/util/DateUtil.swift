@@ -17,7 +17,15 @@ func StringToDate(_ dateStr:String)->Date{
     return dateTime!
 }
 
-
+    //将String转为date，返回yyyy-MM-dd
+    func StringToDateYMDHMS(_ dateStr:String)->Date{
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyy-MM-dd HH:mm:ss" 
+        let dateTime = dateFormatter.date(from: dateStr)
+        return dateTime!
+    }
+    
+    
 //dateh转String  yyyy-MM-dd
 func DateToString(_ date:Date)->String{
     let dateFormatter = DateFormatter()
@@ -47,8 +55,8 @@ func DateToString(_ date:Date)->String{
     func StringToInt(_ dateString:String)->NSDate{
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-       var res = formatter.date(from: dateString)
-        return res as! NSDate
+        let res = formatter.date(from: dateString)
+        return res! as NSDate
     }
     
     func  nsDateToInt(_ date1:String)->Int{

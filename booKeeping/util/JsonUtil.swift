@@ -56,7 +56,22 @@ class JsonUtil {
         return String(data: data, encoding: String.Encoding.utf8)
     }
     
-    func parseJsonByhand(_ jsonStr:String)->[Consumption]{
+    func parseCurrencyResJsonByhand(_ jsonStr:String)->(rate:Double,updateTime:String){
+        //去除[、]、"、:和{
+        var  originStr = jsonStr.replacingOccurrences(of: "]", with: "")
+        originStr = originStr.replacingOccurrences(of: "{", with: "")
+        originStr = originStr.replacingOccurrences(of: "\"", with: "")
+        originStr = originStr.replacingOccurrences(of: "}", with: "")
+        var subStr0 = originStr.components(separatedBy: "rate:")
+        var subStr1 = subStr0[1].components(separatedBy: ",update:")
+        let rate = Double(subStr1[0])
+        let time = subStr1[1]
+
+        return (rate!,time)
+    }
+    
+    
+    func parseDetailsJsonByhand(_ jsonStr:String)->[Consumption]{
         //去除[、]、"、:和{
 
       var  originStr = jsonStr.replacingOccurrences(of: "]", with: "")

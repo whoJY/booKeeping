@@ -32,22 +32,36 @@ class DetailsDao{
         
     }
 
-    //更新用户设置数据
-    func updateUserSettingsDao(touchIDLock: Bool,alarms:String){
-        
-        
-    }
+    
     
     //计算每单位时间内（可以是年月日）的花费,返回花费值，以及各个时间段的名称(注意此方法对于按月/天分尚未指定月份，为上级数组中的第0个元素)
     func calculateEachTimeSpend(style: String)->(spend:[Double],timeScale:[String]){
         var differentYear = [[EverydayDetails]]()
         var spend = [Double]()
         var timeScale = [String]()
-        differentYear = DetailsDao().groupDetailsBy(EverydayDetailsViewController.everydayDetails, style: "byYear")
+        
+        var tempEverydayDetails = [EverydayDetails]()
+        
+        let request: NSFetchRequest<EverydayDetails> = EverydayDetails.fetchRequest()
+        do {
+            //获取数据
+             tempEverydayDetails = try context.fetch(request)
+            if (tempEverydayDetails.count != 0){
+            //按日期排序
+            tempEverydayDetails = DetailsDao().sortByDate(tempEverydayDetails)
+            }
+        }catch{
+            print("从context获取数据错误")
+        }
+        
+        //如果有数据存在
+        if (tempEverydayDetails.count != 0 ){
+        
+        differentYear = DetailsDao().groupDetailsBy(tempEverydayDetails, style: "byYear")
         
         //按年份从小到大排序
         for i in 0...(differentYear.count-1)/2{
-            var temp = differentYear[i]
+            let temp = differentYear[i]
             differentYear[i] = differentYear[differentYear.count-1-i]
             differentYear[differentYear.count-1-i] = temp
         }
@@ -94,6 +108,8 @@ class DetailsDao{
             spend.append(singleSpend)
         }
         return (spend,timeScale)
+        }
+        return ([0.0],[])
     }
     
     //搜索两个时间段之间的数据
@@ -269,17 +285,17 @@ class DetailsDao{
     func query(){
         
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "EverydayDetails")
-        var str = "2019-03-11 00:00:00"
+        let str = "2019-03-11 00:00:00"
         
         DetailsDao().saveDao("test", 1, DateUtil().StringToDate(str), "others", "")
         
-        var date = DateUtil().StringToDate(str)
+        let date = DateUtil().StringToDate(str)
         
-        var interval = DateUtil().dateToInt(date)
+        let interval = DateUtil().dateToInt(date)
         
         print("interval is \(interval)")
         
-        var interval2  = DateUtil().nsDateToInt(str)
+        let interval2  = DateUtil().nsDateToInt(str)
         print("interval2 is \(interval2)")
         
         fetchRequest.predicate = NSPredicate(format: "date >= %@", NSDate(timeIntervalSinceReferenceDate: TimeInterval(interval2)))
@@ -295,7 +311,7 @@ class DetailsDao{
             
             let fetchObject  = result.finalResult! as! [EverydayDetails]
             
-            print("查询结果是:\(result.finalResult)")
+            print("查询结果是:\(String(describing: result.finalResult))")
         }
         // 执行异步请求调用execute
         do {
@@ -308,6 +324,22 @@ class DetailsDao{
         
     }
     
+    func deleteAll(){
+         let request: NSFetchRequest<EverydayDetails> = EverydayDetails.fetchRequest()
+        do {
+            //获取数据
+            let tempEverydayDetails = try context.fetch(request)
+            for i  in tempEverydayDetails{
+                context.delete(i)
+            }
+             try context.save()
+            print("已全部删除")
+        }catch{
+            print("从context获取数据错误")
+        }
+        
+        
+    }
 
     
     

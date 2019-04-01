@@ -29,8 +29,8 @@ class exchangeRateViewController: UIViewController,UICollectionViewDataSource,UI
     @IBOutlet weak var flagsPanelCollection: UICollectionView!
     
     func initUI(){
-        countryAImg.image = UIImage(named: "zhongguoguoqi.png")
-        countryBImg.image = UIImage(named: "meiguoguoqi.png")
+        countryAImg.image = UIImage(named: "CNY.png")
+        countryBImg.image = UIImage(named: "USD.png")
         transImg.image = UIImage(named: "doubleArrow.png")
         //默认隐藏选择国家区域
         chooseCountryView.isHidden = true

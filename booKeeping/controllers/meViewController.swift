@@ -280,11 +280,14 @@ UINavigationControllerDelegate {
         setUserSetting(isLogined: isLogined, touchIDLocked: touchIDLocked, budget: budget, portraitPath: portraitPath, userID: userID, alarmTime: alarmTime)
         print("已删除全部设置")
 
+        DetailsDao().deleteAll()
         reloadDataOfEVC()
         //刷新界面
         meMenuTableView.reloadData()
         initUI()
-        portrait.image = UIImage(named:"unknown_user.png")
+        allCounts.text = "0"
+        allDays.text = "0"
+        portrait.image = UIImage(named:"uu.png")
     }
     
     
@@ -364,7 +367,7 @@ UINavigationControllerDelegate {
          jsonStr = jsonStr.replacingOccurrences(of: "&quot;", with: "\"")
       
          var cons = [Consumption]()
-        cons = JsonUtil().parseJsonByhand(jsonStr)
+        cons = JsonUtil().parseDetailsJsonByhand(jsonStr)
         //删除所有旧数据
         DetailsDao().deleteAll()
         //插入新数据
@@ -377,6 +380,7 @@ UINavigationControllerDelegate {
     
     
     func reloadDataOfEVC(){
+        EverydayDetailsViewController.everydayDetails = []
         EverydayDetailsViewController.everydayTotalArr = [UIView]()
         EverydayDetailsViewController.eachdayBaseViewArr = [UIView]()
         EverydayDetailsViewController.tableViewArr = [UITableView]()
@@ -393,17 +397,23 @@ UINavigationControllerDelegate {
     
     
     static var loadFlag = -1
-    //变成下载图片了
+    //变成汇率换算了
     @IBAction func uploadImg(_ sender: UIButton) {
 
-     let base64Str = HttpUtil().askWebService("downloadImg","unknown id","")
-      
-        if(base64Str.contains("ERROR")){//如果网络请求失败
-            showMsgbox(_message: base64Str) //提示错误信息
-        }else{
-     image2.image =  ImgUtil.convertBase64ToImage(imageString: base64Str)
-        }
+        //下载图片
+//     let base64Str = HttpUtil().askWebService("downloadImg","unknown id","")
+//
+//        if(base64Str.contains("ERROR")){//如果网络请求失败
+//            showMsgbox(_message: base64Str) //提示错误信息
+//        }else{
+//     image2.image =  ImgUtil.convertBase64ToImage(imageString: base64Str)
+//        }
 
+        var jsonStr = HttpUtil().askWebService("exchangeRate", "USD", "EUR")
+        jsonStr = jsonStr.replacingOccurrences(of: "&quot;", with: "\"")
+       let res = JsonUtil().parseCurrencyResJsonByhand(jsonStr)
+       print(res)
+        
     }
     
     @IBAction func test(_ sender: UIButton) {

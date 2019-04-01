@@ -8,6 +8,7 @@
 
 import UIKit
 import Charts
+import CoreData
 class statisticsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     @IBOutlet weak var showChartArea: UIView!
     @IBOutlet weak var payOUT: UIButton!
@@ -18,6 +19,7 @@ class statisticsViewController: UIViewController, UITableViewDelegate, UITableVi
     @IBOutlet weak var totalCost: UILabel!
     @IBOutlet weak var averCost: UILabel!
     @IBOutlet weak var rankingTableView: UITableView!
+    @IBOutlet weak var budgetLeft: UILabel!
     
     
     //所有点的颜色
@@ -32,7 +34,6 @@ class statisticsViewController: UIViewController, UITableViewDelegate, UITableVi
         loadData()
         rankingTableView.delegate = self
         rankingTableView.dataSource = self
-        
         //        calculateEachYearSpend()
     }
     
@@ -221,6 +222,9 @@ class statisticsViewController: UIViewController, UITableViewDelegate, UITableVi
     func showMsg(_ queryStyle: String){
         var spendAndYear = DetailsDao().calculateEachTimeSpend(style: queryStyle)
         var total = 0.0
+        //如果不为空
+        if (spendAndYear.timeScale.count != 0){
+        calBudget() //计算剩余预算
         for i in 0...spendAndYear.timeScale.count-1 {
             total += spendAndYear.spend[i]
         }
@@ -228,8 +232,48 @@ class statisticsViewController: UIViewController, UITableViewDelegate, UITableVi
         totalCost.text = String(format: "%.2f",  total)//保留两位小数
         averCost.text = String(format: "%.2f", averageCost)//保留两位小数
         createChart(queryStyle: queryStyle)
-        
+     
+        }
     }
+    
+    
+    /// 计算预算
+    func calBudget(){
+        print("budget is \(getUsersettings().budget)")
+        var budget = 0.0
+        var cost  = 0.0
+        if (getUsersettings().budget != 0){
+            budget = getUsersettings().budget
+            //计算本月花费
+            let YMD =  DateUtil().DateToStringYMD(Date());
+            let start  = YMD.startIndex
+            let end = YMD.index(YMD.startIndex, offsetBy: 7)
+            let YM = String(YMD[start..<end]) //当前年月
+            print("当前年月\(YM)")
+            var tempEverydayDetails = [EverydayDetails]()
+            var groups = [[String]]()
+            let request: NSFetchRequest<EverydayDetails> = EverydayDetails.fetchRequest()
+            do {
+                //获取数据
+                tempEverydayDetails = try context.fetch(request)
+                if (tempEverydayDetails.count != 0){
+                    //按日期排序
+                    groups = DetailsDao().sortItemBySpecialDatePattern(tempEverydayDetails, datePattern: "yyyy-MM-dd")
+                    for i in 0...groups.count-1{
+                        if (groups[i][0].contains(YM)){
+                            for j in 1...groups[i].count-1{
+                                cost += tempEverydayDetails[Int(groups[i][j])!].price
+                            }
+                        }
+                    }
+                }
+                budgetLeft.text = String(budget-cost)
+            }catch{
+                print("从context获取数据错误")
+            }
+        }
+    }
+    
     
     //创建折线图
     func createChart(queryStyle:String){
@@ -350,6 +394,8 @@ class statisticsViewController: UIViewController, UITableViewDelegate, UITableVi
         chartView.notifyDataSetChanged()
     }
     
+    
+    
     //折线上的点取消选中回调
     func chartValueNothingSelected(_ chartView: ChartViewBase) {
         print("取消选中的数据")
@@ -362,6 +408,32 @@ class statisticsViewController: UIViewController, UITableViewDelegate, UITableVi
         //重新渲染表格
         chartView.data?.notifyDataChanged()
         chartView.notifyDataSetChanged()
+    }
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
+        let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
+    //获取设置信息
+    func getUsersettings()->UserSettings{
+        var res: UserSettings = UserSettings()
+        do{
+            let  userSetting = try context.fetch(request)
+            if (userSetting.count != 0 ){
+                res = userSetting[0]
+            }else{
+                let newSetting = UserSettings(context: context)
+                newSetting.alarmTime = ""
+                newSetting.budget = 0.0
+                newSetting.isLogined = false
+                newSetting.portraitPath = ""
+                newSetting.touchIDLocked = false
+                newSetting.userID = "unknown id"
+                try context.save()
+                res = newSetting
+            }
+        }catch{
+            print("无法获取设置信息")
+        }
+        return res
     }
     
     

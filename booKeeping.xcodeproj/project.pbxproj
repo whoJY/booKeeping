@@ -24,6 +24,8 @@
 		402B777E222A26FC002CEC99 /* exchangeRateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402B777D222A26FC002CEC99 /* exchangeRateViewController.swift */; };
 		402B7780222A64E6002CEC99 /* Finger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 402B777F222A64E6002CEC99 /* Finger.swift */; };
 		4045CD7322421B4C00AC0A54 /* ImgUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4045CD7222421B4C00AC0A54 /* ImgUtil.swift */; };
+		405D8C162250A7340095358B /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 405D8C152250A7340095358B /* LoadingView.swift */; };
+		405D8C322250E44F0095358B /* flagsCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 405D8C312250E44F0095358B /* flagsCollectionViewCell.swift */; };
 		4062D413222E57B900F52A1A /* alarmTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4062D412222E57B900F52A1A /* alarmTableViewCell.swift */; };
 		4062D483222FDC6B00F52A1A /* statisticsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4062D482222FDC6B00F52A1A /* statisticsTableViewCell.swift */; };
 		4083E8CC2238F452006024CF /* HttpUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4083E8CB2238F452006024CF /* HttpUtil.swift */; };
@@ -337,6 +339,8 @@
 		402B777D222A26FC002CEC99 /* exchangeRateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = exchangeRateViewController.swift; sourceTree = "<group>"; };
 		402B777F222A64E6002CEC99 /* Finger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Finger.swift; sourceTree = "<group>"; };
 		4045CD7222421B4C00AC0A54 /* ImgUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImgUtil.swift; sourceTree = "<group>"; };
+		405D8C152250A7340095358B /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
+		405D8C312250E44F0095358B /* flagsCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = flagsCollectionViewCell.swift; sourceTree = "<group>"; };
 		4062D412222E57B900F52A1A /* alarmTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = alarmTableViewCell.swift; sourceTree = "<group>"; };
 		4062D482222FDC6B00F52A1A /* statisticsTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = statisticsTableViewCell.swift; sourceTree = "<group>"; };
 		4083E8CB2238F452006024CF /* HttpUtil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpUtil.swift; sourceTree = "<group>"; };
@@ -464,6 +468,7 @@
 			children = (
 				40F8367222083C9F0007E899 /* EverydayDetailsTableViewCell.swift */,
 				40978944221A58E300F354EE /* menuTableViewCell.swift */,
+				405D8C312250E44F0095358B /* flagsCollectionViewCell.swift */,
 				402B777B222963F0002CEC99 /* toolMenuTableViewCell.swift */,
 				4062D412222E57B900F52A1A /* alarmTableViewCell.swift */,
 				4062D482222FDC6B00F52A1A /* statisticsTableViewCell.swift */,
@@ -535,6 +540,7 @@
 				40F836A0221124750007E899 /* datebase */,
 				402B777622294FA7002CEC99 /* cell */,
 				40B570F821F0873E00F68713 /* Main.storyboard */,
+				405D8C152250A7340095358B /* LoadingView.swift */,
 				409789382218F7B500F354EE /* CUILine.swift */,
 				40B5710621F0877000F68713 /* Surpporting Files */,
 				40B5710021F0874100F68713 /* Info.plist */,
@@ -985,6 +991,7 @@
 				4062D483222FDC6B00F52A1A /* statisticsTableViewCell.swift in Sources */,
 				40F8369B2210FEED0007E899 /* EverydayDetailsViewController.swift in Sources */,
 				402B777C222963F0002CEC99 /* toolMenuTableViewCell.swift in Sources */,
+				405D8C322250E44F0095358B /* flagsCollectionViewCell.swift in Sources */,
 				40978943221975B900F354EE /* meViewController.swift in Sources */,
 				409789372215724C00F354EE /* Model.xcdatamodeld in Sources */,
 				40F836C32213EAE40007E899 /* chooseKindandInputViewController.swift in Sources */,
@@ -1002,6 +1009,7 @@
 				40978947221B9E4300F354EE /* setAlarmViewController.swift in Sources */,
 				402B774D2227D26E002CEC99 /* detailsDao.swift in Sources */,
 				40E77D932243CC7D00FA2407 /* rootViewController.swift in Sources */,
+				405D8C162250A7340095358B /* LoadingView.swift in Sources */,
 				4083E8D0223922F9006024CF /* JsonUtil.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
