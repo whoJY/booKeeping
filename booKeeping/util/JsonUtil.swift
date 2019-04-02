@@ -92,7 +92,22 @@ class JsonUtil {
             subStr1 = subStr1[1].components(separatedBy: ",name:")
             let user_id = subStr1[0] //得到user_id
             subStr1 = subStr1[1].components(separatedBy: ",kind:")
-            let name = subStr1[0]//得到name
+            var name = subStr1[0]//得到name
+            if (name.contains("&#")){//如果是ncr类型
+                name  = name.replacingOccurrences(of: "\"", with: "")
+                let subNames = name.components(separatedBy: ";")
+                var sentence = ""
+                for i in 0...subNames.count - 1{
+                    var temp = ""
+                    temp = StringUtil().ncrToString(subNames[i])
+                    sentence += temp
+                }
+                name = sentence
+            }
+            
+            
+            
+            
             subStr1 = subStr1[1].components(separatedBy: ",price:")
             let kind = subStr1[0]//得到kind
             subStr1 = subStr1[1].components(separatedBy: ",date:")
@@ -106,5 +121,9 @@ class JsonUtil {
         return cons
         
     }
+    
+//    func uicodeToString(_ unicode:String)->String{
+//
+//    }
     
 }

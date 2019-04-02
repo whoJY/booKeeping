@@ -49,8 +49,14 @@ class HttpUtil{
     let downloadImg2 = "</tel>" + "</downloadImg>"
     
     //上传json
-    let jsonSoapMsg1 = "<uploadConsumption xmlns=\"http://tempuri.org/\">" + "<jsonStr>"
-    let jsonSoapMsg2 = "</jsonStr>" + "</uploadConsumption>"
+    let jsonSoapMsg1 = "<uploadConsumption xmlns=\"http://tempuri.org/\">" + "<tel>"
+    let jsonSoapMsg2 = "</tel>" + "<jsonStr>"
+    let jsonSoapMsg3 = "</jsonStr>" + "</uploadConsumption>"
+    
+    
+    //上传json
+//    let jsonSoapMsg1 = "<uploadConsumption xmlns=\"http://tempuri.org/\">" + "<jsonStr>"
+//    let jsonSoapMsg2 = "</jsonStr>" + "</uploadConsumption>"
     
     //下载json
     let downloadJsonSoapMsg1 = "<downloadDetails xmlns=\"http://tempuri.org/\">" + "<tel>"
@@ -72,7 +78,7 @@ class HttpUtil{
     //下载img url
     let imgUrl2 = "http://129.204.12.94:8080/bookeepingWebService/services/Download"
     //上传json数据url
-    let jsonUrl = "http://129.204.12.94:8080/bookeepingWebService/services/objectUpload"
+    let jsonUrl = "http://129.204.12.94:8080/bookeepingWebService/services/ObjectUpload"
     //
     let exchangeRatejsonUrl = "http://129.204.12.94:8080/bookeepingWebService/services/ExchangeRate"
     
@@ -95,7 +101,7 @@ class HttpUtil{
             let soapMsg = soapHead+downloadImg1+para1+downloadImg2+soapEnd
             return HttpPostViaWS(soapMsg, url: imgUrl2)
         case "uploadConsumption"://上传json
-            let soapMsg = soapHead+jsonSoapMsg1+para1+jsonSoapMsg2+soapEnd
+            let soapMsg = soapHead+jsonSoapMsg1+para1+jsonSoapMsg2+para2_optional+jsonSoapMsg3+soapEnd
             return HttpPostViaWS(soapMsg, url: jsonUrl)
         case "downloadDetails": //下载json
             let soapMsg = soapHead+downloadJsonSoapMsg1+para1+downloadJsonSoapMsg2+soapEnd

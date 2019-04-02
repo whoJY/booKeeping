@@ -61,7 +61,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     //存入每天的table view  cell id
     static var staticCellID = [String]()
     //上一天视图的高度
-    static var lastViewHeight = 300
+    static var lastViewHeight = 0
     //数据分组
     var groups  = [[String]]()
     //用来记录加载到哪一位了
@@ -98,7 +98,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     var searching = false
     
     /// 正在操作的数据
-    static var presentDetails:EverydayDetails? = nil  
+    static var presentDetails:EverydayDetails? = nil
     /// 正在操作的tablev view
     static var presentTableView:UITableView? = nil
     /// 正在操作的 indexpath
@@ -331,9 +331,6 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         EverydayDetailsViewController.presentTableView = tableView
         EverydayDetailsViewController.presentIndexPath = indexPath
     
-        
-        
-        
     }
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
@@ -418,8 +415,28 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
                 
             }
             print("\n\n")
+            
+            
+            //上传到服务器
+            uploadToServer()
         }
     }
+    
+    ///上传数据到服务器
+    public func uploadToServer(){
+        let consArr = transUtil(loadDataSource())
+        
+        let jsonStr = JsonUtil().convertArrToJsonStr(consArr)
+        let tel = getUsersettings().userID != "" ?  getUsersettings().userID : "unknown userID"
+        
+        print("tel is \(String(describing: tel)),consArr is \(consArr)")
+        DispatchQueue.global().async {//多线程上传
+            let res = HttpUtil().askWebService("uploadConsumption", tel!, jsonStr)
+            print("数据同步结果\(res)")
+        }
+    }
+    
+    
     //改变一个UIVIEW数组中tag的值
     func changeViewsTagValue(_ views:[UIView],_ offset:Int,_ startIndex:Int,_ endIndex:Int)->[UIView]{
         var res = views
@@ -494,8 +511,10 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
             if (newCount == oldCount){//如果新旧条数相等，说明还是同一天增加的
                 addInTheSameDay()  //在已有天数上添加数据
             }else{ //新的一天直接重载所有数据
-                print("新的一天")
+                
             }
+            //上传到服务器
+            uploadToServer()
         }
     }
     
@@ -722,13 +741,14 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     }
     
     //载入数据
-    func loadDataSource(){
-        
+    func loadDataSource()->[EverydayDetails]{
+        var res = [EverydayDetails]()
         let request: NSFetchRequest<EverydayDetails> = EverydayDetails.fetchRequest()
         do {
             //获取数据
             let tempEverydayDetails = try context.fetch(request)
             if (tempEverydayDetails.count != 0){
+                res = tempEverydayDetails
             //按日期排序
             EverydayDetailsViewController.everydayDetails = DetailsDao().sortByDate(tempEverydayDetails)
             print("数据总量:\( EverydayDetailsViewController.everydayDetails.count)")
@@ -736,6 +756,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         }catch{
             print("从context获取数据错误")
         }
+        return res
     }
     
     //清除所有缓存
@@ -797,7 +818,7 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         return false
     }
     
-    //设置view风格
+    ///设置view风格
     func setViewRoundAndShadow(view : UIView){
         //为轮廓添加阴影和圆角
         view.backgroundColor =   #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
@@ -811,6 +832,43 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         view.layer.borderWidth = 0.25//设置边框线条粗细
         
     }
+    
+    //将coredata数据数组转为consumption(codable)数组
+    func transUtil(_ details:[EverydayDetails])->[Consumption]{
+        var res:[Consumption] = []
+        for i in details {
+            let temp : Consumption = Consumption(id: i.id ?? "unknown id", user_id: i.user_id ?? "unknown userID", name: i.name ?? "unknow name", kind: i.kind ?? "unknown kind", price: i.price, date: DateUtil().DateToString(i.date!))
+            res.append(temp)
+        }
+        return res
+    }
+    
+    
+    //获取设置信息
+    func getUsersettings()->UserSettings{
+        let request: NSFetchRequest<UserSettings> = UserSettings.fetchRequest()
+        var res: UserSettings = UserSettings()
+        do{
+            let  userSetting = try context.fetch(request)
+            if (userSetting.count != 0 ){
+                res = userSetting[0]
+            }else{
+                let newSetting = UserSettings(context: context)
+                newSetting.alarmTime = ""
+                newSetting.budget = 0.0
+                newSetting.isLogined = false
+                newSetting.portraitPath = ""
+                newSetting.touchIDLocked = false
+                newSetting.userID = "unknown id"
+                try context.save()
+                res = newSetting
+            }
+        }catch{
+            print("无法获取设置信息")
+        }
+        return res
+    }
+    
 }
 
 //设置uilabel样式

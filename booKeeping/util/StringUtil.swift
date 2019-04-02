@@ -65,6 +65,21 @@ class StringUtil {
     }
     
     
+    /// 将ncr转为string
+    ///
+    /// - Parameter ncr: ncr 字符
+    /// - Returns: 转换后的string
+    func ncrToString(_ ncr:String)->String{
+        let data = ncr.data(using: .utf8)
+        
+        do {
+            let attributedString = try NSAttributedString(data: data!, options: [.documentType: NSAttributedString.DocumentType.html, .characterEncoding: String.Encoding.utf8.rawValue], documentAttributes: nil)
+            return attributedString.string
+        } catch {
+            return ""
+        }
+    }
+    
     
     
     

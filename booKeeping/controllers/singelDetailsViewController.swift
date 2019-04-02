@@ -111,8 +111,7 @@ class singelDetailsViewController: UIViewController {
             activityNameLabel.text = note
             activityPrice.text = Double(price!)!.cleanZero() //去除多余0
             activityIcon.image = UIImage(named: (singelDetailsViewController.presentDetails?.kind!)!+".png" )
-            
-            
+    
             cell!.contentView.addSubview(activityNameLabel)
             cell!.contentView.addSubview(activityPrice)
             cell!.contentView.addSubview(activityIcon)
@@ -121,6 +120,8 @@ class singelDetailsViewController: UIViewController {
             }catch{
                 
             }
+            //上传到服务器
+            EverydayDetailsViewController().uploadToServer()
         }
         self.removeAnimate()
     }

@@ -503,6 +503,7 @@
 				4001B36F223E24CF00787584 /* pwdViewController.swift */,
 				40E77D902243BEF800FA2407 /* validateTouchIDViewController.swift */,
 				40E77D922243CC7D00FA2407 /* rootViewController.swift */,
+				405D8C3522522AB80095358B /* singelDetailsViewController.swift */,
 			);
 			path = controllers;
 			sourceTree = "<group>";
@@ -542,7 +543,6 @@
 				40F836A0221124750007E899 /* datebase */,
 				402B777622294FA7002CEC99 /* cell */,
 				40B570F821F0873E00F68713 /* Main.storyboard */,
-				405D8C3522522AB80095358B /* singelDetailsViewController.swift */,
 				405D8C152250A7340095358B /* LoadingView.swift */,
 				409789382218F7B500F354EE /* CUILine.swift */,
 				40B5710621F0877000F68713 /* Surpporting Files */,

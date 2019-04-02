@@ -366,6 +366,7 @@ UINavigationControllerDelegate {
 //         let jsonData = JSON.init(jsonStr as Any)
          jsonStr = jsonStr.replacingOccurrences(of: "&quot;", with: "\"")
       
+        print("jsonstr is \(jsonStr)")
          var cons = [Consumption]()
         cons = JsonUtil().parseDetailsJsonByhand(jsonStr)
         //删除所有旧数据
@@ -411,6 +412,7 @@ UINavigationControllerDelegate {
 
         var jsonStr = HttpUtil().askWebService("exchangeRate", "USD", "EUR")
         jsonStr = jsonStr.replacingOccurrences(of: "&quot;", with: "\"")
+        
        let res = JsonUtil().parseCurrencyResJsonByhand(jsonStr)
        print(res)
         
