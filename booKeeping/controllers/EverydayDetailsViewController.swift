@@ -94,6 +94,15 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
     static var operateDelete = false
     static var hasDeletedOneTable = false //如果删除了一天，借此判断是删除了一条数据还是一天的table
     
+    static var groupsCount = 0 //统计组数
+    var searching = false
+    
+    /// 正在操作的数据
+    static var presentDetails:EverydayDetails? = nil  
+    /// 正在操作的tablev view
+    static var presentTableView:UITableView? = nil
+    /// 正在操作的 indexpath
+    static var presentIndexPath:IndexPath? = nil
     
     //添加一天的视图,若按顺序生成，则按顺序排，否则拍第一个
     func addOneDay(_ singleGroup: [String],_ tag :Int,_ isCreatedByOrder:Bool)->UIView{
@@ -300,8 +309,30 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         
     }
     
-    //选择此行数据则删除-此方法暂时禁用
+    
+    
+    /// 点击cell弹出详情框
+    ///
+    /// - Parameters:
+    ///   - tableView: <#tableView description#>
+    ///   - indexPath: <#indexPath description#>
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let tag = tableView.tag
+        
+        //向另一个页面传值
+        singelDetailsViewController.presentDetails = EverydayDetailsViewController.everydayDetails[Int(groups[tag][indexPath.row+1])!]
+        //跳转
+        let popOverVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "singelDetailsViewController") as! singelDetailsViewController
+        self.addChild(popOverVC)
+        popOverVC.view.frame = self.view.frame
+        self.view.addSubview(popOverVC.view)
+        popOverVC.didMove(toParent: self)
+        
+        EverydayDetailsViewController.presentTableView = tableView
+        EverydayDetailsViewController.presentIndexPath = indexPath
+    
+        
+        
         
     }
     
@@ -417,8 +448,8 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
         //初始化视图
         initUI()
         //载入数据
-        //        loadData()
-        DetailsDao().deleteAll()
+                loadData()
+//        DetailsDao().deleteAll()
         //打印路径
         printPath()
         //                        chooseKindandInputViewController().create999Details()
@@ -599,9 +630,6 @@ class EverydayDetailsViewController: UIViewController, UITableViewDelegate, UITa
             }
         }
     }
-    
-    static var groupsCount = 0 //统计组数
-    var searching = false
     
     //加载图标
     func createActivityIndicator(){
